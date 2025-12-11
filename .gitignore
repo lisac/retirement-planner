@@ -1,46 +1,136 @@
-# Environment variables (NEVER commit!)
+# ===== ENVIRONMENT VARIABLES (NEVER COMMIT!) =====
 .env
 .env.local
 .env.*.local
+*.env
 
-# Virtual environment
+# ===== VIRTUAL ENVIRONMENT =====
 venv/
 env/
 ENV/
+.venv/
 
-# Python
+# ===== PYTHON =====
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Django
+# ===== DJANGO =====
+# Logs
 *.log
-db.sqlite3
-*.sqlite3
-media/
-staticfiles/
+local_settings.py
 
-# IDE
+# Database
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+
+# Media files (user uploads - consider adding to repo if needed)
+media/
+
+# Static files (collected static, not source)
+staticfiles/
+static/
+/static/
+
+# Django migrations (optional - some teams commit these)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# ===== DJANGO SECRET KEY BACKUPS =====
+*.key
+*.pem
+*.crt
+
+# ===== IDE & EDITORS =====
+# VSCode
 .vscode/
+*.code-workspace
+
+# PyCharm
 .idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Testing
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ===== OS FILES =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===== TESTING =====
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
+*.cover
+.hypothesis/
 
-# Distribution / packaging
+# ===== DISTRIBUTION / PACKAGING =====
 build/
 dist/
 *.egg-info/
+*.egg
+MANIFEST
+wheels/
 
-# Node.js (Tailwind)
+# ===== NODE.JS (TAILWIND) =====
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 package-lock.json
+yarn.lock
 theme/static_src/node_modules/
+
+# ===== CELERY =====
+celerybeat-schedule
+celerybeat.pid
+
+# ===== BACKUP FILES =====
+*.bak
+*.tmp
+*.swp
+
+# ===== JUPYTER NOTEBOOK =====
+.ipynb_checkpoints
+*.ipynb
+
+# ===== DOCUMENTATION =====
+docs/_build/
+site/
+
+# ===== LOCAL CONFIGURATION =====
+local_settings.py
+settings_local.py

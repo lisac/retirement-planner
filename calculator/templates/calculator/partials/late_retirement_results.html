@@ -1,0 +1,153 @@
+{% load calculator_tags %}
+
+<div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-8 shadow-lg border border-indigo-200">
+    <h3 class="text-2xl font-bold text-indigo-900 mb-6 flex items-center">
+        <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+        Late Retirement & Legacy Results
+    </h3>
+
+    {# Portfolio sufficiency check #}
+    {% if not results.portfolio_sufficient %}
+    <div class="bg-yellow-100 border border-yellow-300 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <svg class="w-6 h-6 text-yellow-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+                <div class="font-bold text-yellow-800 mb-1">⚠️ Legacy Goal Not Met</div>
+                <div class="text-sm text-yellow-700">
+                    Your portfolio may not meet your desired legacy goal. Consider adjusting expenses or long-term care planning.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-green-100 border border-green-300 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <svg class="w-6 h-6 text-green-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <div class="font-bold text-green-800 mb-1">✓ Legacy Goal Achieved</div>
+                <div class="text-sm text-green-700">
+                    Your portfolio is projected to meet or exceed your desired legacy amount.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Portfolio and legacy #}
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-md">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <div class="text-xs text-gray-500 uppercase mb-1">Starting Portfolio</div>
+                <div class="text-2xl font-bold text-gray-700">
+                    {{ results.starting_portfolio|currency }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs text-gray-500 uppercase mb-1">Ending Portfolio</div>
+                <div class="text-2xl font-bold {% if results.ending_portfolio > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ results.ending_portfolio|currency }}
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-200">
+            <div class="text-xs text-gray-500 uppercase mb-1">Legacy Amount</div>
+            <div class="text-3xl font-bold text-indigo-600">
+                {{ results.legacy_amount|currency }}
+            </div>
+            <div class="text-sm text-gray-500 mt-1">
+                Over {{ results.phase_duration_years }} {{ results.phase_duration_years|years_plural }}
+            </div>
+        </div>
+    </div>
+
+    {# Long-term care costs #}
+    <div class="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4 mb-6 border border-red-200">
+        <div class="text-sm font-semibold text-red-900 mb-3">Long-Term Care Analysis</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-white rounded p-3">
+                <div class="text-xs text-gray-500 uppercase mb-1">Total LTC Costs</div>
+                <div class="text-lg font-semibold text-red-600">
+                    {{ results.total_ltc_costs|currency }}
+                </div>
+            </div>
+            <div class="bg-white rounded p-3">
+                <div class="text-xs text-gray-500 uppercase mb-1">Insurance Paid</div>
+                <div class="text-lg font-semibold text-green-600">
+                    {{ results.total_ltc_insurance_paid|currency }}
+                </div>
+            </div>
+            <div class="bg-white rounded p-3">
+                <div class="text-xs text-gray-500 uppercase mb-1">Out-of-Pocket</div>
+                <div class="text-lg font-semibold text-orange-600">
+                    {{ results.net_ltc_out_of_pocket|currency }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Other costs and income #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-lg p-4 shadow">
+            <div class="text-xs text-gray-500 uppercase mb-1">Total Portfolio Withdrawals</div>
+            <div class="text-2xl font-semibold text-orange-600">
+                {{ results.total_withdrawals|currency }}
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 shadow border border-blue-200">
+            <div class="text-xs text-blue-700 uppercase mb-1">Social Security Income</div>
+            <div class="text-2xl font-semibold text-blue-700">
+                {{ results.total_social_security|currency }}
+            </div>
+        </div>
+    </div>
+
+    {# Summary breakdown #}
+    <div class="mt-6 pt-6 border-t border-indigo-200">
+        <div class="text-sm text-gray-600 space-y-2">
+            <div class="flex justify-between">
+                <span>Starting Portfolio:</span>
+                <span class="font-medium">{{ results.starting_portfolio|currency }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Portfolio Withdrawals:</span>
+                <span class="font-medium text-orange-600">- {{ results.total_withdrawals|currency }}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="ml-4 text-gray-500">• Basic expenses & healthcare</span>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="ml-4 text-gray-500">• LTC out-of-pocket: {{ results.net_ltc_out_of_pocket|currency }}</span>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 italic">
+                <span>(Social Security received separately)</span>
+            </div>
+            <div class="flex justify-between pt-2 border-t border-gray-300 text-base font-bold">
+                <span>Final Portfolio / Legacy:</span>
+                <span class="{% if results.ending_portfolio > 0 %}text-indigo-600{% else %}text-red-600{% endif %}">
+                    {{ results.ending_portfolio|currency }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {# LTC coverage analysis #}
+    <div class="mt-4 bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+        <p class="text-sm text-indigo-800">
+            <strong>Long-Term Care:</strong> Your LTC insurance covered {{ results.total_ltc_insurance_paid|currency }} of {{ results.total_ltc_costs|currency }} in care costs
+            ({% widthratio results.total_ltc_insurance_paid results.total_ltc_costs 100 %}% coverage).
+            {% if results.portfolio_sufficient %}
+            Your portfolio successfully covers remaining costs and meets legacy goals.
+            {% else %}
+            Consider increasing LTC insurance coverage to better protect your legacy.
+            {% endif %}
+        </p>
+    </div>
+</div>

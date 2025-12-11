@@ -1,0 +1,82 @@
+{% load calculator_tags %}
+
+<!-- This is the results section that gets swapped in by HTMX -->
+<div class="space-y-4">
+    <!-- Years to Retirement -->
+    <div class="bg-blue-50 rounded-lg p-4">
+        <p class="text-sm text-blue-600 font-semibold mb-1">Years to Retirement</p>
+        <p class="text-3xl font-bold text-blue-700">
+            {{ results.years_to_retirement }} {{ results.years_to_retirement|years_plural }}
+        </p>
+    </div>
+
+    <!-- Future Value -->
+    <div class="bg-green-50 rounded-lg p-4">
+        <p class="text-sm text-green-600 font-semibold mb-1">Projected Retirement Savings</p>
+        <p class="text-3xl font-bold text-green-700">
+            {{ results.future_value|currency }}
+        </p>
+        <p class="text-xs text-green-600 mt-1">
+            {{ results.future_value|currency_short }}
+        </p>
+    </div>
+
+    <!-- Total Contributions -->
+    <div class="bg-purple-50 rounded-lg p-4">
+        <p class="text-sm text-purple-600 font-semibold mb-1">Total Contributions</p>
+        <p class="text-2xl font-bold text-purple-700">
+            {{ results.total_contributions|currency }}
+        </p>
+    </div>
+
+    <!-- Investment Gains -->
+    <div class="bg-yellow-50 rounded-lg p-4">
+        <p class="text-sm text-yellow-600 font-semibold mb-1">Investment Gains</p>
+        <p class="text-2xl font-bold text-yellow-700">
+            {{ results.investment_gains|currency }}
+        </p>
+        <p class="text-xs text-yellow-600 mt-1">
+            ROI: {{ results.return_on_investment_percent|percent:1 }}
+        </p>
+    </div>
+
+    <!-- Monthly Income Estimate -->
+    <div class="bg-indigo-50 rounded-lg p-4">
+        <p class="text-sm text-indigo-600 font-semibold mb-1">Est. Monthly Income (20 years)</p>
+        <p class="text-2xl font-bold text-indigo-700">
+            {{ results.monthly_income_estimate|currency }}
+        </p>
+    </div>
+
+    <!-- Breakdown Chart -->
+    <div class="mt-6 pt-6 border-t border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Breakdown</h3>
+        <div class="space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Your Contributions</span>
+                <span class="font-semibold text-gray-800">
+                    {{ results.total_contributions|currency }}
+                </span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Investment Growth</span>
+                <span class="font-semibold text-green-600">
+                    +{{ results.investment_gains|currency }}
+                </span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Growth Rate</span>
+                <span class="font-semibold text-blue-600">
+                    {% calculate_percentage results.investment_gains results.total_contributions as growth_pct %}
+                    {{ growth_pct|percent:0 }}
+                </span>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                <span class="font-bold text-gray-700">Total at Retirement</span>
+                <span class="font-bold text-xl text-green-700">
+                    {{ results.future_value|currency }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'tailwind',
     'theme',  # Tailwind theme app
     'django_browser_reload',
+    'django_htmx',  # HTMX integration
     # Project apps
     'calculator',
 ]
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_browser_reload.middleware.BrowserReloadMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',  # HTMX middleware
 ]
 
 ROOT_URLCONF = 'retirement_planner.urls'

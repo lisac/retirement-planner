@@ -1,0 +1,125 @@
+{% load calculator_tags %}
+
+<div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-8 shadow-lg border border-orange-200">
+    <h3 class="text-2xl font-bold text-orange-900 mb-6 flex items-center">
+        <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Active Retirement Results
+    </h3>
+
+    {# Portfolio sustainability check #}
+    {% if results.portfolio_depletion_age %}
+    <div class="bg-red-100 border border-red-300 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <svg class="w-6 h-6 text-red-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+                <div class="font-bold text-red-800 mb-1">⚠️ Portfolio Depletion Warning</div>
+                <div class="text-sm text-red-700">
+                    Your portfolio may run out at age <strong>{{ results.portfolio_depletion_age }}</strong>. Consider reducing expenses or increasing income sources.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Portfolio change overview #}
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-md">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <div class="text-xs text-gray-500 uppercase mb-1">Starting Portfolio</div>
+                <div class="text-2xl font-bold text-gray-700">
+                    {{ results.starting_portfolio|currency }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs text-gray-500 uppercase mb-1">Ending Portfolio</div>
+                <div class="text-2xl font-bold {% if results.ending_portfolio > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ results.ending_portfolio|currency }}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <div class="text-xs text-gray-500 uppercase mb-1">Phase Duration</div>
+            <div class="text-xl font-semibold text-gray-700">
+                {{ results.phase_duration_years }} {{ results.phase_duration_years|years_plural }}
+            </div>
+        </div>
+    </div>
+
+    {# Income sources #}
+    <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 mb-6 border border-blue-200">
+        <div class="text-sm font-semibold text-blue-900 mb-3">Total Income Sources</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-white rounded p-3">
+                <div class="text-xs text-gray-500 uppercase mb-1">Social Security</div>
+                <div class="text-xl font-semibold text-blue-600">
+                    {{ results.total_social_security|currency }}
+                </div>
+            </div>
+            <div class="bg-white rounded p-3">
+                <div class="text-xs text-gray-500 uppercase mb-1">Pension</div>
+                <div class="text-xl font-semibold text-blue-600">
+                    {{ results.total_pension|currency }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Withdrawals and investment performance #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-lg p-4 shadow">
+            <div class="text-xs text-gray-500 uppercase mb-1">Total Portfolio Withdrawals</div>
+            <div class="text-2xl font-semibold text-orange-600">
+                {{ results.total_withdrawals|currency }}
+            </div>
+            <div class="text-xs text-gray-500 mt-2">
+                Avg: {{ results.average_annual_withdrawal|currency }}/year
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 shadow border border-green-200">
+            <div class="text-xs text-green-700 uppercase mb-1">Total Investment Gains</div>
+            <div class="text-2xl font-semibold text-green-700">
+                {{ results.total_investment_gains|currency }}
+            </div>
+        </div>
+    </div>
+
+    {# Summary breakdown #}
+    <div class="mt-6 pt-6 border-t border-orange-200">
+        <div class="text-sm text-gray-600 space-y-2">
+            <div class="flex justify-between">
+                <span>Starting Portfolio:</span>
+                <span class="font-medium">{{ results.starting_portfolio|currency }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Investment Gains:</span>
+                <span class="font-medium text-green-600">+ {{ results.total_investment_gains|currency }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Portfolio Withdrawals:</span>
+                <span class="font-medium text-orange-600">- {{ results.total_withdrawals|currency }}</span>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 italic">
+                <span>(Social Security & Pension received separately)</span>
+            </div>
+            <div class="flex justify-between pt-2 border-t border-gray-300 text-base font-bold">
+                <span>Ending Portfolio:</span>
+                <span class="{% if results.ending_portfolio > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ results.ending_portfolio|currency }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {# Info note #}
+    <div class="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <p class="text-sm text-orange-800">
+            <strong>Active Retirement Phase:</strong> Your most active years with moderate healthcare costs. Social Security and pension provide {{ results.total_social_security|currency|add:results.total_pension|currency }} in guaranteed income.
+        </p>
+    </div>
+</div>

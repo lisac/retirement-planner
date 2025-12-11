@@ -8,6 +8,7 @@ click==8.3.1
 cookiecutter==2.6.0
 Django==6.0
 django-browser-reload==1.21.0
+django-htmx==1.27.0
 django-tailwind==4.4.2
 idna==3.11
 Jinja2==3.1.6

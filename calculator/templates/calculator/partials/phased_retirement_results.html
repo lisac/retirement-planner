@@ -1,0 +1,107 @@
+{% load calculator_tags %}
+
+<div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-8 shadow-lg border border-purple-200">
+    <h3 class="text-2xl font-bold text-purple-900 mb-6 flex items-center">
+        <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Phased Retirement Results
+    </h3>
+
+    {# Portfolio change overview #}
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-md">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <div class="text-xs text-gray-500 uppercase mb-1">Starting Portfolio</div>
+                <div class="text-2xl font-bold text-gray-700">
+                    {{ results.starting_portfolio|currency }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs text-gray-500 uppercase mb-1">Ending Portfolio</div>
+                <div class="text-2xl font-bold {% if results.ending_portfolio >= results.starting_portfolio %}text-green-600{% else %}text-orange-600{% endif %}">
+                    {{ results.ending_portfolio|currency }}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <div class="text-xs text-gray-500 uppercase mb-1">Net Change</div>
+            <div class="text-3xl font-bold {% if results.net_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if results.net_change >= 0 %}+{% endif %}{{ results.net_change|currency }}
+            </div>
+            <div class="text-sm text-gray-500 mt-1">
+                Over {{ results.phase_duration_years }} {{ results.phase_duration_years|years_plural }}
+            </div>
+        </div>
+    </div>
+
+    {# Income and contributions #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-lg p-4 shadow">
+            <div class="text-xs text-gray-500 uppercase mb-1">Total Part-Time Income</div>
+            <div class="text-2xl font-semibold text-green-600">
+                {{ results.total_part_time_income|currency }}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+            <div class="text-xs text-gray-500 uppercase mb-1">Total Contributions</div>
+            <div class="text-2xl font-semibold text-blue-600">
+                {{ results.total_contributions|currency }}
+            </div>
+        </div>
+    </div>
+
+    {# Withdrawals and investment gains #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-lg p-4 shadow">
+            <div class="text-xs text-gray-500 uppercase mb-1">Total Withdrawals</div>
+            <div class="text-2xl font-semibold text-orange-600">
+                {{ results.total_withdrawals|currency }}
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 shadow border border-green-200">
+            <div class="text-xs text-green-700 uppercase mb-1">Investment Gains</div>
+            <div class="text-2xl font-semibold text-green-700">
+                {{ results.investment_gains|currency }}
+            </div>
+        </div>
+    </div>
+
+    {# Summary breakdown #}
+    <div class="mt-6 pt-6 border-t border-purple-200">
+        <div class="text-sm text-gray-600 space-y-2">
+            <div class="flex justify-between">
+                <span>Starting Portfolio:</span>
+                <span class="font-medium">{{ results.starting_portfolio|currency }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Contributions:</span>
+                <span class="font-medium text-blue-600">+ {{ results.total_contributions|currency }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Investment Gains:</span>
+                <span class="font-medium text-green-600">+ {{ results.investment_gains|currency }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Withdrawals:</span>
+                <span class="font-medium text-orange-600">- {{ results.total_withdrawals|currency }}</span>
+            </div>
+            <div class="flex justify-between pt-2 border-t border-gray-300 text-base font-bold">
+                <span>Ending Portfolio:</span>
+                <span class="{% if results.ending_portfolio >= results.starting_portfolio %}text-green-600{% else %}text-orange-600{% endif %}">
+                    {{ results.ending_portfolio|currency }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {# Info note #}
+    <div class="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <p class="text-sm text-purple-800">
+            <strong>Note:</strong> Part-time income of {{ results.total_part_time_income|currency }} supplements your lifestyle during this transition phase.
+        </p>
+    </div>
+</div>
