@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from .models import Scenario
 
 
 # Custom validator function (reusable across forms)
@@ -150,3 +151,16 @@ class RetirementCalculatorForm(forms.Form):
             )
 
         return cleaned_data
+
+
+class ScenarioNameForm(forms.ModelForm):
+    """Form for saving a scenario - only asks for name, data is captured from calculator"""
+    class Meta:
+        model = Scenario
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+                'placeholder': 'e.g., Conservative Retirement Plan'
+            })
+        }

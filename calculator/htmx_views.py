@@ -10,7 +10,8 @@ appropriate templates (partials for HTMX, full pages for direct access).
 
 from django.shortcuts import render
 from django.http import HttpResponse
-from .forms import RetirementCalculatorForm
+import json
+from .forms import RetirementCalculatorForm, ScenarioNameForm
 from .calculator import calculate_retirement_savings
 from .phase_forms import (
     AccumulationPhaseForm,
@@ -24,6 +25,7 @@ from .phase_calculator import (
     calculate_active_retirement_phase,
     calculate_late_retirement_phase
 )
+from .models import Scenario
 
 
 # ===== SHARED HELPER =====
@@ -164,3 +166,42 @@ def calculate_late_retirement(request):
         calculate_late_retirement_phase,
         'calculator/partials/late_retirement_results.html'
     )
+
+
+# ===== SCENARIO MANAGEMENT =====
+
+def save_scenario(request):
+    """
+    HTMX endpoint: Save current calculator state as a scenario.
+
+    Captures all form data from the multi-phase calculator and saves as JSON.
+    """
+    if request.method != 'POST':
+        return HttpResponse('<div class="text-red-500">Invalid request method</div>')
+
+    form = ScenarioNameForm(request.POST)
+
+    if form.is_valid():
+        # Create scenario with name from form
+        scenario = form.save(commit=False)
+
+        # Capture all form data as JSON (excluding csrf_token and scenario_name)
+        data = {}
+        for key, value in request.POST.items():
+            if key not in ['csrfmiddlewaretoken', 'name']:
+                data[key] = value
+
+        scenario.data = data
+        scenario.save()
+
+        # Return success message
+        return HttpResponse(f'''
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                ✓ Scenario "{scenario.name}" saved successfully!
+                <a href="/calculator/scenarios/" class="underline ml-2">View all scenarios</a>
+            </div>
+        ''')
+    else:
+        # Return error message
+        errors = '<br>'.join([f'{field}: {error}' for field, error in form.errors.items()])
+        return HttpResponse(f'<div class="text-red-500">{errors}</div>')

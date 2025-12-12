@@ -18,6 +18,9 @@ urlpatterns = [
     path('calculate/active-retirement/', htmx_views.calculate_active_retirement, name='calculate_active_retirement'),
     path('calculate/late-retirement/', htmx_views.calculate_late_retirement, name='calculate_late_retirement'),
 
+    # Scenario save HTMX endpoint
+    path('scenarios/save/', htmx_views.save_scenario, name='save_scenario'),
+
     # Scenario CRUD endpoints (RESTful)
     path('scenarios/', views.ScenarioListView.as_view(), name='scenario_list'),
     path('scenarios/new/', views.ScenarioCreateView.as_view(), name='scenario_create'),
