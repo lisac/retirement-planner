@@ -68,15 +68,38 @@ Visit: http://127.0.0.1:8000/calculator/multi-phase/
 
 ## Project Structure
 
+### Core Files
+
 ```
 calculator/
-├── phase_forms.py          # Forms for 4 phases
-├── phase_calculator.py     # Calculation logic
-├── htmx_views.py          # HTMX endpoints
+├── models.py               # Scenario model (save/load retirement plans)
+├── views.py               # Main views (simple calc, multi-phase, CRUD)
+├── htmx_views.py          # HTMX endpoints for dynamic updates
+├── forms.py               # Simple calculator form
+├── phase_forms.py         # Multi-phase calculator forms
+├── calculator.py          # Simple retirement calculator (legacy)
+├── phase_calculator.py    # Multi-phase calculator (primary)
+├── urls.py                # URL routing
+├── admin.py               # Django admin configuration
+├── tests.py               # Test suite (16 tests)
 └── templates/calculator/
-    ├── multi_phase_calculator.html
-    └── partials/           # HTMX response fragments
+    ├── multi_phase_calculator.html  # Main app
+    ├── scenario_list.html           # Saved scenarios
+    └── partials/                    # HTMX response fragments
 ```
+
+### File Purposes
+
+- **calculator.py** - Original single-phase retirement calculator (legacy)
+- **phase_calculator.py** - Advanced multi-phase calculator (recommended for new features)
+- **views.py** - All views organized in sections:
+  - Simple Calculator (legacy)
+  - Multi-Phase Calculator (primary feature)
+  - Scenario CRUD (save/load/edit/delete)
+- **htmx_views.py** - HTMX-only endpoints for:
+  - Phase calculations
+  - Scenario saving
+  - Dynamic form updates
 
 ## Key Calculations
 

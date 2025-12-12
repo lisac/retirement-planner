@@ -12,6 +12,13 @@ from .phase_forms import (
 from .models import Scenario
 
 
+# =============================================================================
+# SIMPLE CALCULATOR (Original Single-Phase)
+# =============================================================================
+# Legacy calculator for basic retirement projections.
+# Uses calculator.py for calculations.
+# Consider using multi-phase calculator for new features.
+
 def retirement_calculator(request):
     """
     Handle retirement calculator form (original simple calculator).
@@ -42,6 +49,13 @@ def retirement_calculator(request):
     })
 
 
+# =============================================================================
+# MULTI-PHASE CALCULATOR (Primary Feature)
+# =============================================================================
+# Advanced calculator with 4 retirement phases.
+# Uses phase_calculator.py for calculations.
+# Supports scenario loading and saving.
+
 def multi_phase_calculator(request, scenario_id=None):
     """
     Multi-phase retirement calculator with tabbed interface.
@@ -70,7 +84,12 @@ def multi_phase_calculator(request, scenario_id=None):
     })
 
 
-# CRUD Views for Scenario model
+# =============================================================================
+# SCENARIO CRUD VIEWS
+# =============================================================================
+# Manage saved retirement scenarios (create, read, update, delete).
+# Uses class-based views for standard CRUD operations.
+
 class ScenarioListView(ListView):
     """Display list of all saved scenarios."""
     model = Scenario
