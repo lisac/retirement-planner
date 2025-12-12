@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from .forms import RetirementCalculatorForm
@@ -42,22 +42,31 @@ def retirement_calculator(request):
     })
 
 
-def multi_phase_calculator(request):
+def multi_phase_calculator(request, scenario_id=None):
     """
     Multi-phase retirement calculator with tabbed interface.
     Displays all 4 retirement phases in separate tabs.
+    Optionally loads a saved scenario.
     """
-    # Initialize all forms (empty on GET)
-    accumulation_form = AccumulationPhaseForm()
-    phased_retirement_form = PhasedRetirementForm()
-    active_retirement_form = ActiveRetirementForm()
-    late_retirement_form = LateRetirementForm()
+    # If scenario_id is provided, load the scenario data
+    initial_data = {}
+    scenario = None
+    if scenario_id:
+        scenario = get_object_or_404(Scenario, pk=scenario_id)
+        initial_data = scenario.data
+
+    # Initialize all forms (with scenario data if provided)
+    accumulation_form = AccumulationPhaseForm(initial=initial_data)
+    phased_retirement_form = PhasedRetirementForm(initial=initial_data)
+    active_retirement_form = ActiveRetirementForm(initial=initial_data)
+    late_retirement_form = LateRetirementForm(initial=initial_data)
 
     return render(request, 'calculator/multi_phase_calculator.html', {
         'accumulation_form': accumulation_form,
         'phased_retirement_form': phased_retirement_form,
         'active_retirement_form': active_retirement_form,
         'late_retirement_form': late_retirement_form,
+        'loaded_scenario': scenario,
     })
 
 
