@@ -10,6 +10,7 @@ appropriate templates (partials for HTMX, full pages for direct access).
 
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 import json
 from .forms import RetirementCalculatorForm, ScenarioNameForm
 from .calculator import calculate_retirement_savings
@@ -170,6 +171,7 @@ def calculate_late_retirement(request):
 
 # ===== SCENARIO MANAGEMENT =====
 
+@login_required
 def save_scenario(request):
     """
     HTMX endpoint: Save current calculator state as a scenario.
@@ -184,6 +186,9 @@ def save_scenario(request):
     if form.is_valid():
         # Create scenario with name from form
         scenario = form.save(commit=False)
+
+        # Set the user to the logged-in user
+        scenario.user = request.user
 
         # Capture all form data as JSON (excluding csrf_token and scenario_name)
         data = {}

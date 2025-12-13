@@ -3,6 +3,8 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import RetirementCalculatorForm
 from .calculator import calculate_retirement_savings
 from .phase_forms import (
@@ -58,6 +60,7 @@ def retirement_calculator(request):
 # Uses phase_calculator.py for calculations.
 # Supports scenario loading and saving.
 
+@login_required
 def multi_phase_calculator(request, scenario_id=None):
     """
     Multi-phase retirement calculator with tabbed interface.
@@ -68,7 +71,8 @@ def multi_phase_calculator(request, scenario_id=None):
     initial_data = {}
     scenario = None
     if scenario_id:
-        scenario = get_object_or_404(Scenario, pk=scenario_id)
+        # Ensure user can only load their own scenarios
+        scenario = get_object_or_404(Scenario, pk=scenario_id, user=request.user)
         initial_data = scenario.data
 
     # Initialize all forms (with scenario data if provided)
@@ -92,34 +96,51 @@ def multi_phase_calculator(request, scenario_id=None):
 # Manage saved retirement scenarios (create, read, update, delete).
 # Uses class-based views for standard CRUD operations.
 
-class ScenarioListView(ListView):
-    """Display list of all saved scenarios."""
+class ScenarioListView(LoginRequiredMixin, ListView):
+    """Display list of all saved scenarios for the logged-in user."""
     model = Scenario
     template_name = 'calculator/scenario_list.html'
     context_object_name = 'scenarios'
 
+    def get_queryset(self):
+        """Filter scenarios to only show the current user's scenarios."""
+        return Scenario.objects.filter(user=self.request.user)
 
-class ScenarioCreateView(CreateView):
+
+class ScenarioCreateView(LoginRequiredMixin, CreateView):
     """Create a new scenario."""
     model = Scenario
     fields = ['name', 'data']
     template_name = 'calculator/scenario_form.html'
     success_url = reverse_lazy('calculator:scenario_list')
 
+    def form_valid(self, form):
+        """Set the user before saving."""
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
-class ScenarioUpdateView(UpdateView):
+
+class ScenarioUpdateView(LoginRequiredMixin, UpdateView):
     """Update an existing scenario."""
     model = Scenario
     fields = ['name', 'data']
     template_name = 'calculator/scenario_form.html'
     success_url = reverse_lazy('calculator:scenario_list')
 
+    def get_queryset(self):
+        """Only allow users to edit their own scenarios."""
+        return Scenario.objects.filter(user=self.request.user)
 
-class ScenarioDeleteView(DeleteView):
+
+class ScenarioDeleteView(LoginRequiredMixin, DeleteView):
     """Delete a scenario."""
     model = Scenario
     template_name = 'calculator/scenario_confirm_delete.html'
     success_url = reverse_lazy('calculator:scenario_list')
+
+    def get_queryset(self):
+        """Only allow users to delete their own scenarios."""
+        return Scenario.objects.filter(user=self.request.user)
 
 
 # =============================================================================
@@ -127,6 +148,7 @@ class ScenarioDeleteView(DeleteView):
 # =============================================================================
 # Compare two scenarios side-by-side and highlight better performer.
 
+@login_required
 def compare_scenarios(request):
     """
     Compare two scenarios side-by-side.
@@ -136,7 +158,7 @@ def compare_scenarios(request):
     from .phase_calculator import calculate_accumulation_phase
     from decimal import Decimal
 
-    scenarios = Scenario.objects.all()
+    scenarios = Scenario.objects.filter(user=request.user)
     comparison_data = None
     error_message = None
     better_scenario = None
