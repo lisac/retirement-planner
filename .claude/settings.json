@@ -1,0 +1,9 @@
+{
+  "model": "opusplan",
+  "permissions": {
+    "allow": [
+      "Bash(source venv/bin/activate)",
+      "Bash(python manage.py test:*)"
+    ]
+  }
+}
