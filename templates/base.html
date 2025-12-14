@@ -73,10 +73,5 @@
 
     <!-- Extra JS block for child templates -->
     {% block extra_js %}{% endblock %}
-
-    {% if debug %}
-        {% load django_browser_reload %}
-        {% django_browser_reload_script %}
-    {% endif %}
 </body>
 </html>
