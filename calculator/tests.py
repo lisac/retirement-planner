@@ -5,7 +5,12 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from .models import Scenario
 from .calculator import calculate_retirement_savings
-from .phase_calculator import calculate_accumulation_phase
+from .phase_calculator import (
+    calculate_accumulation_phase,
+    calculate_phased_retirement_phase,
+    calculate_active_retirement_phase,
+    calculate_late_retirement_phase
+)
 from .admin import ScenarioAdmin
 
 
@@ -98,6 +103,696 @@ class CalculatorFunctionTests(TestCase):
         result = calculate_accumulation_phase(data)
 
         self.assertGreater(result.future_value, Decimal('100000'))
+
+
+class AccumulationPhaseEdgeCaseTests(TestCase):
+    """Comprehensive edge case tests for accumulation phase calculations."""
+
+    def test_zero_years_to_retirement(self):
+        """Test when current age equals retirement age (0 years to retirement)."""
+        data = {
+            'current_age': 65,
+            'retirement_start_age': 65,
+            'current_savings': '100000',
+            'monthly_contribution': '1000',
+            'employer_match_rate': '50',
+            'expected_return': '7',
+            'annual_salary_increase': '2'
+        }
+        result = calculate_accumulation_phase(data)
+
+        self.assertEqual(result.years_to_retirement, 0)
+        self.assertEqual(result.future_value, Decimal('100000'))
+        self.assertEqual(result.total_personal_contributions, Decimal('0'))
+        self.assertEqual(result.total_employer_contributions, Decimal('0'))
+        self.assertEqual(result.investment_gains, Decimal('0'))
+
+    def test_zero_current_savings(self):
+        """Test with zero initial savings, only contributions."""
+        data = {
+            'current_age': 30,
+            'retirement_start_age': 40,
+            'current_savings': '0',
+            'monthly_contribution': '500',
+            'employer_match_rate': '100',
+            'expected_return': '6',
+            'annual_salary_increase': '0'
+        }
+        result = calculate_accumulation_phase(data)
+
+        self.assertEqual(result.years_to_retirement, 10)
+        self.assertGreater(result.future_value, 0)
+        self.assertGreater(result.total_personal_contributions, 0)
+        self.assertGreater(result.total_employer_contributions, 0)
+
+    def test_zero_return_rate(self):
+        """Test with 0% return (no growth, just contributions)."""
+        data = {
+            'current_age': 30,
+            'retirement_start_age': 35,
+            'current_savings': '10000',
+            'monthly_contribution': '1000',
+            'employer_match_rate': '0',
+            'expected_return': '0',
+            'annual_salary_increase': '0'
+        }
+        result = calculate_accumulation_phase(data)
+
+        # With 0% return, future value should equal starting savings + total contributions
+        expected_fv = Decimal('10000') + (Decimal('1000') * 5 * 12)
+        self.assertEqual(result.future_value, expected_fv)
+        self.assertEqual(result.investment_gains, Decimal('0'))
+
+    def test_high_employer_match(self):
+        """Test with 200% employer match (extremely generous)."""
+        data = {
+            'current_age': 25,
+            'retirement_start_age': 30,
+            'current_savings': '0',
+            'monthly_contribution': '1000',
+            'employer_match_rate': '200',
+            'expected_return': '5',
+            'annual_salary_increase': '0'
+        }
+        result = calculate_accumulation_phase(data)
+
+        # Employer should contribute 2x the employee contribution
+        self.assertAlmostEqual(
+            float(result.total_employer_contributions),
+            float(result.total_personal_contributions * 2),
+            places=2
+        )
+
+    def test_high_salary_increase(self):
+        """Test with aggressive 10% annual salary increases."""
+        data = {
+            'current_age': 22,
+            'retirement_start_age': 27,
+            'current_savings': '0',
+            'monthly_contribution': '1000',
+            'employer_match_rate': '50',
+            'expected_return': '7',
+            'annual_salary_increase': '10'
+        }
+        result = calculate_accumulation_phase(data)
+
+        # Final contribution should be much higher than starting contribution
+        self.assertGreater(result.final_monthly_contribution, Decimal('1000'))
+
+    def test_very_long_time_horizon(self):
+        """Test with 50 years to retirement."""
+        data = {
+            'current_age': 18,
+            'retirement_start_age': 68,
+            'current_savings': '1000',
+            'monthly_contribution': '200',
+            'employer_match_rate': '50',
+            'expected_return': '7',
+            'annual_salary_increase': '2'
+        }
+        result = calculate_accumulation_phase(data)
+
+        self.assertEqual(result.years_to_retirement, 50)
+        # With 50 years of compound growth, should have significant value
+        self.assertGreater(result.future_value, Decimal('500000'))
+
+    def test_high_return_rate(self):
+        """Test with aggressive 15% return rate."""
+        data = {
+            'current_age': 30,
+            'retirement_start_age': 50,
+            'current_savings': '50000',
+            'monthly_contribution': '500',
+            'employer_match_rate': '0',
+            'expected_return': '15',
+            'annual_salary_increase': '0'
+        }
+        result = calculate_accumulation_phase(data)
+
+        # High return should result in large investment gains
+        self.assertGreater(result.investment_gains, result.total_personal_contributions)
+
+    def test_large_starting_portfolio(self):
+        """Test with multi-million dollar starting portfolio."""
+        data = {
+            'current_age': 50,
+            'retirement_start_age': 60,
+            'current_savings': '10000000',
+            'monthly_contribution': '0',
+            'employer_match_rate': '0',
+            'expected_return': '5',
+            'annual_salary_increase': '0'
+        }
+        result = calculate_accumulation_phase(data)
+
+        # Even with no contributions, large portfolio should grow significantly
+        self.assertGreater(result.future_value, Decimal('10000000'))
+        self.assertGreater(result.investment_gains, Decimal('0'))
+
+
+class PhasedRetirementEdgeCaseTests(TestCase):
+    """Comprehensive edge case tests for phased retirement phase."""
+
+    def test_basic_phased_retirement(self):
+        """Test basic phased retirement calculation."""
+        data = {
+            'starting_portfolio': '500000',
+            'phase_start_age': 60,
+            'full_retirement_age': 65,
+            'monthly_contribution': '1000',
+            'annual_withdrawal': '24000',
+            'part_time_income': '20000',
+            'expected_return': '5'
+        }
+        result = calculate_phased_retirement_phase(data)
+
+        self.assertEqual(result.phase_duration_years, 5)
+        self.assertGreater(result.total_contributions, 0)
+        self.assertGreater(result.total_withdrawals, 0)
+        self.assertEqual(result.total_part_time_income, Decimal('100000'))
+
+    def test_zero_duration_phased_retirement(self):
+        """Test when full retirement age equals phase start age."""
+        data = {
+            'starting_portfolio': '500000',
+            'phase_start_age': 65,
+            'full_retirement_age': 65,
+            'monthly_contribution': '0',
+            'annual_withdrawal': '0',
+            'part_time_income': '0',
+            'expected_return': '5'
+        }
+        result = calculate_phased_retirement_phase(data)
+
+        self.assertEqual(result.phase_duration_years, 0)
+        self.assertEqual(result.ending_portfolio, Decimal('500000'))
+        self.assertEqual(result.total_contributions, Decimal('0'))
+
+    def test_phased_retirement_portfolio_growth(self):
+        """Test scenario where contributions exceed withdrawals (portfolio grows)."""
+        data = {
+            'starting_portfolio': '300000',
+            'phase_start_age': 60,
+            'full_retirement_age': 67,
+            'monthly_contribution': '2000',
+            'annual_withdrawal': '12000',
+            'part_time_income': '30000',
+            'expected_return': '6'
+        }
+        result = calculate_phased_retirement_phase(data)
+
+        # Portfolio should grow when contributions > withdrawals + good returns
+        self.assertGreater(result.ending_portfolio, result.starting_portfolio)
+        self.assertGreater(result.net_change, Decimal('0'))
+
+    def test_phased_retirement_portfolio_decline(self):
+        """Test scenario where withdrawals exceed contributions (portfolio declines)."""
+        data = {
+            'starting_portfolio': '400000',
+            'phase_start_age': 62,
+            'full_retirement_age': 67,
+            'monthly_contribution': '0',
+            'annual_withdrawal': '40000',
+            'part_time_income': '15000',
+            'expected_return': '4'
+        }
+        result = calculate_phased_retirement_phase(data)
+
+        # High withdrawals with low contributions should reduce portfolio
+        self.assertLess(result.ending_portfolio, result.starting_portfolio)
+        self.assertLess(result.net_change, Decimal('0'))
+
+    def test_phased_retirement_no_transactions(self):
+        """Test with no contributions or withdrawals, only growth."""
+        data = {
+            'starting_portfolio': '250000',
+            'phase_start_age': 60,
+            'full_retirement_age': 63,
+            'monthly_contribution': '0',
+            'annual_withdrawal': '0',
+            'part_time_income': '0',
+            'expected_return': '7'
+        }
+        result = calculate_phased_retirement_phase(data)
+
+        # Portfolio should only grow from investment returns
+        self.assertGreater(result.ending_portfolio, result.starting_portfolio)
+        self.assertEqual(result.total_contributions, Decimal('0'))
+        self.assertEqual(result.total_withdrawals, Decimal('0'))
+
+
+class ActiveRetirementEdgeCaseTests(TestCase):
+    """Comprehensive edge case tests for active retirement phase."""
+
+    def test_basic_active_retirement(self):
+        """Test basic active retirement calculation."""
+        data = {
+            'starting_portfolio': '1000000',
+            'active_retirement_start_age': 67,
+            'active_retirement_end_age': 85,
+            'annual_expenses': '50000',
+            'annual_healthcare_costs': '15000',
+            'social_security_annual': '30000',
+            'pension_annual': '20000',
+            'expected_return': '5',
+            'inflation_rate': '3'
+        }
+        result = calculate_active_retirement_phase(data)
+
+        self.assertEqual(result.phase_duration_years, 18)
+        self.assertGreater(result.total_withdrawals, 0)
+        self.assertGreater(result.total_social_security, 0)
+        self.assertGreater(result.total_pension, 0)
+
+    def test_zero_duration_active_retirement(self):
+        """Test when start age equals end age."""
+        data = {
+            'starting_portfolio': '800000',
+            'active_retirement_start_age': 70,
+            'active_retirement_end_age': 70,
+            'annual_expenses': '40000',
+            'annual_healthcare_costs': '10000',
+            'social_security_annual': '25000',
+            'pension_annual': '0',
+            'expected_return': '4',
+            'inflation_rate': '2'
+        }
+        result = calculate_active_retirement_phase(data)
+
+        self.assertEqual(result.phase_duration_years, 0)
+        self.assertEqual(result.average_annual_withdrawal, Decimal('0'))
+
+    def test_portfolio_depletion(self):
+        """Test scenario where portfolio runs out before phase ends."""
+        data = {
+            'starting_portfolio': '200000',
+            'active_retirement_start_age': 65,
+            'active_retirement_end_age': 85,
+            'annual_expenses': '60000',
+            'annual_healthcare_costs': '20000',
+            'social_security_annual': '20000',
+            'pension_annual': '0',
+            'expected_return': '3',
+            'inflation_rate': '3'
+        }
+        result = calculate_active_retirement_phase(data)
+
+        # Portfolio should run out
+        self.assertIsNotNone(result.portfolio_depletion_age)
+        self.assertEqual(result.ending_portfolio, Decimal('0'))
+
+    def test_income_exceeds_expenses(self):
+        """Test when social security + pension > expenses (no withdrawals needed)."""
+        data = {
+            'starting_portfolio': '500000',
+            'active_retirement_start_age': 67,
+            'active_retirement_end_age': 75,
+            'annual_expenses': '30000',
+            'annual_healthcare_costs': '10000',
+            'social_security_annual': '35000',
+            'pension_annual': '25000',
+            'expected_return': '6',
+            'inflation_rate': '2'
+        }
+        result = calculate_active_retirement_phase(data)
+
+        # Portfolio should grow when income exceeds expenses
+        self.assertGreater(result.ending_portfolio, result.starting_portfolio)
+
+    def test_high_inflation_impact(self):
+        """Test with high 5% inflation rate."""
+        data = {
+            'starting_portfolio': '750000',
+            'active_retirement_start_age': 65,
+            'active_retirement_end_age': 80,
+            'annual_expenses': '40000',
+            'annual_healthcare_costs': '15000',
+            'social_security_annual': '30000',
+            'pension_annual': '0',
+            'expected_return': '6',
+            'inflation_rate': '5'
+        }
+        result = calculate_active_retirement_phase(data)
+
+        # High inflation should increase average withdrawal over time
+        self.assertGreater(result.average_annual_withdrawal, Decimal('25000'))
+
+    def test_no_income_sources(self):
+        """Test with no social security or pension."""
+        data = {
+            'starting_portfolio': '1200000',
+            'active_retirement_start_age': 60,
+            'active_retirement_end_age': 75,
+            'annual_expenses': '50000',
+            'annual_healthcare_costs': '12000',
+            'social_security_annual': '0',
+            'pension_annual': '0',
+            'expected_return': '5',
+            'inflation_rate': '3'
+        }
+        result = calculate_active_retirement_phase(data)
+
+        # All expenses must come from portfolio
+        self.assertGreater(result.total_withdrawals, 0)
+        self.assertEqual(result.total_social_security, Decimal('0'))
+        self.assertEqual(result.total_pension, Decimal('0'))
+
+
+class LateRetirementEdgeCaseTests(TestCase):
+    """Comprehensive edge case tests for late retirement phase."""
+
+    def test_basic_late_retirement(self):
+        """Test basic late retirement calculation."""
+        data = {
+            'starting_portfolio': '500000',
+            'late_retirement_start_age': 85,
+            'life_expectancy': 95,
+            'annual_basic_expenses': '30000',
+            'annual_healthcare_costs': '20000',
+            'long_term_care_annual': '60000',
+            'ltc_insurance_coverage': '40000',
+            'social_security_annual': '30000',
+            'expected_return': '3',
+            'inflation_rate': '2',
+            'desired_legacy': '100000'
+        }
+        result = calculate_late_retirement_phase(data)
+
+        self.assertEqual(result.phase_duration_years, 10)
+        self.assertGreater(result.total_ltc_costs, 0)
+        self.assertGreater(result.total_ltc_insurance_paid, 0)
+        self.assertGreater(result.net_ltc_out_of_pocket, 0)
+
+    def test_zero_duration_late_retirement(self):
+        """Test when start age equals life expectancy."""
+        data = {
+            'starting_portfolio': '300000',
+            'late_retirement_start_age': 90,
+            'life_expectancy': 90,
+            'annual_basic_expenses': '25000',
+            'annual_healthcare_costs': '15000',
+            'long_term_care_annual': '0',
+            'ltc_insurance_coverage': '0',
+            'social_security_annual': '25000',
+            'expected_return': '2',
+            'inflation_rate': '2',
+            'desired_legacy': '50000'
+        }
+        result = calculate_late_retirement_phase(data)
+
+        self.assertEqual(result.phase_duration_years, 0)
+        self.assertEqual(result.total_withdrawals, Decimal('0'))
+
+    def test_ltc_insurance_full_coverage(self):
+        """Test when LTC insurance fully covers long-term care costs."""
+        data = {
+            'starting_portfolio': '400000',
+            'late_retirement_start_age': 85,
+            'life_expectancy': 92,
+            'annual_basic_expenses': '20000',
+            'annual_healthcare_costs': '15000',
+            'long_term_care_annual': '50000',
+            'ltc_insurance_coverage': '60000',
+            'social_security_annual': '28000',
+            'expected_return': '3',
+            'inflation_rate': '2',
+            'desired_legacy': '0'
+        }
+        result = calculate_late_retirement_phase(data)
+
+        # Insurance should cover all LTC costs (at least initially)
+        self.assertLess(result.net_ltc_out_of_pocket, result.total_ltc_costs)
+
+    def test_portfolio_depletion_late_retirement(self):
+        """Test scenario where portfolio runs out."""
+        data = {
+            'starting_portfolio': '150000',
+            'late_retirement_start_age': 85,
+            'life_expectancy': 95,
+            'annual_basic_expenses': '25000',
+            'annual_healthcare_costs': '20000',
+            'long_term_care_annual': '70000',
+            'ltc_insurance_coverage': '30000',
+            'social_security_annual': '20000',
+            'expected_return': '2',
+            'inflation_rate': '3',
+            'desired_legacy': '100000'
+        }
+        result = calculate_late_retirement_phase(data)
+
+        # Portfolio should be depleted
+        self.assertEqual(result.ending_portfolio, Decimal('0'))
+        self.assertFalse(result.portfolio_sufficient)
+
+    def test_legacy_goal_met(self):
+        """Test scenario where legacy goal is achieved."""
+        data = {
+            'starting_portfolio': '800000',
+            'late_retirement_start_age': 85,
+            'life_expectancy': 92,
+            'annual_basic_expenses': '20000',
+            'annual_healthcare_costs': '12000',
+            'long_term_care_annual': '40000',
+            'ltc_insurance_coverage': '35000',
+            'social_security_annual': '30000',
+            'expected_return': '4',
+            'inflation_rate': '2',
+            'desired_legacy': '200000'
+        }
+        result = calculate_late_retirement_phase(data)
+
+        # Should have sufficient portfolio for legacy
+        self.assertGreater(result.legacy_amount, Decimal('200000'))
+        self.assertTrue(result.portfolio_sufficient)
+
+    def test_no_ltc_costs(self):
+        """Test with no long-term care costs."""
+        data = {
+            'starting_portfolio': '450000',
+            'late_retirement_start_age': 85,
+            'life_expectancy': 93,
+            'annual_basic_expenses': '22000',
+            'annual_healthcare_costs': '18000',
+            'long_term_care_annual': '0',
+            'ltc_insurance_coverage': '0',
+            'social_security_annual': '28000',
+            'expected_return': '3',
+            'inflation_rate': '2',
+            'desired_legacy': '100000'
+        }
+        result = calculate_late_retirement_phase(data)
+
+        self.assertEqual(result.total_ltc_costs, Decimal('0'))
+        self.assertEqual(result.total_ltc_insurance_paid, Decimal('0'))
+        self.assertEqual(result.net_ltc_out_of_pocket, Decimal('0'))
+
+
+class RetirementCalculatorFormTests(TestCase):
+    """Comprehensive tests for RetirementCalculatorForm validation."""
+
+    def test_form_with_valid_data(self):
+        """Test form with all valid data."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 30,
+            'retirement_age': 65,
+            'current_savings': '50000',
+            'monthly_contribution': '1000',
+            'expected_return': '7',
+            'variance': '2'
+        })
+
+        self.assertTrue(form.is_valid())
+
+    def test_form_unrealistic_return_rate(self):
+        """Test that returns above 15% are rejected."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 30,
+            'retirement_age': 65,
+            'current_savings': '50000',
+            'monthly_contribution': '1000',
+            'expected_return': '20',  # Unrealistic
+            'variance': '2'
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('expected_return', form.errors)
+        self.assertIn('unrealistic', str(form.errors['expected_return']).lower())
+
+    def test_form_excessive_monthly_contribution(self):
+        """Test that monthly contributions over $10,000 are rejected."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 25,
+            'retirement_age': 60,
+            'current_savings': '10000',
+            'monthly_contribution': '15000',  # Too high
+            'expected_return': '7',
+            'variance': '2'
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('monthly_contribution', form.errors)
+
+    def test_form_high_variance_warning(self):
+        """Test that variance above 10% triggers validation error."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 30,
+            'retirement_age': 65,
+            'current_savings': '50000',
+            'monthly_contribution': '1000',
+            'expected_return': '7',
+            'variance': '15'  # Too high
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('variance', form.errors)
+        self.assertIn('high risk', str(form.errors['variance']).lower())
+
+    def test_form_retirement_age_less_than_current_age(self):
+        """Test that retirement age must be greater than current age."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 65,
+            'retirement_age': 60,  # Invalid: less than current age
+            'current_savings': '100000',
+            'monthly_contribution': '0',
+            'expected_return': '5',
+            'variance': '2'
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('Retirement age must be greater', str(form.errors['__all__']))
+
+    def test_form_retirement_age_equals_current_age(self):
+        """Test that retirement age equal to current age is rejected."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 65,
+            'retirement_age': 65,  # Same as current age
+            'current_savings': '100000',
+            'monthly_contribution': '0',
+            'expected_return': '5',
+            'variance': '2'
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('__all__', form.errors)
+
+    def test_form_less_than_five_years_to_retirement(self):
+        """Test that less than 5 years to retirement is rejected."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 62,
+            'retirement_age': 64,  # Only 2 years
+            'current_savings': '200000',
+            'monthly_contribution': '1000',
+            'expected_return': '5',
+            'variance': '2'
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('too short', str(form.errors['__all__']).lower())
+
+    def test_form_no_savings_or_contributions(self):
+        """Test that user must have either savings or contributions."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 25,
+            'retirement_age': 65,
+            'current_savings': '0',  # No savings
+            'monthly_contribution': '0',  # No contributions
+            'expected_return': '7',
+            'variance': '2'
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('savings or monthly contributions', str(form.errors['__all__']).lower())
+
+    def test_form_variance_default_value(self):
+        """Test that variance defaults to 2.0 when not provided."""
+        from .forms import RetirementCalculatorForm
+
+        form = RetirementCalculatorForm(data={
+            'current_age': 30,
+            'retirement_age': 65,
+            'current_savings': '50000',
+            'monthly_contribution': '1000',
+            'expected_return': '7'
+            # variance not provided
+        })
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['variance'], Decimal('2.0'))
+
+    def test_form_age_boundaries(self):
+        """Test age validation boundaries."""
+        from .forms import RetirementCalculatorForm
+
+        # Test minimum age (18)
+        form = RetirementCalculatorForm(data={
+            'current_age': 18,
+            'retirement_age': 65,
+            'current_savings': '1000',
+            'monthly_contribution': '100',
+            'expected_return': '7',
+            'variance': '2'
+        })
+        self.assertTrue(form.is_valid())
+
+        # Test age below minimum (17)
+        form = RetirementCalculatorForm(data={
+            'current_age': 17,
+            'retirement_age': 65,
+            'current_savings': '1000',
+            'monthly_contribution': '100',
+            'expected_return': '7',
+            'variance': '2'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('current_age', form.errors)
+
+
+class CustomUserCreationFormTests(TestCase):
+    """Tests for custom user registration form."""
+
+    def test_form_with_email(self):
+        """Test that form accepts valid email."""
+        from .forms import CustomUserCreationForm
+
+        form = CustomUserCreationForm(data={
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password1': 'testpass123!',
+            'password2': 'testpass123!'
+        })
+
+        self.assertTrue(form.is_valid())
+
+    def test_form_saves_email_to_user(self):
+        """Test that email is saved to user model."""
+        from .forms import CustomUserCreationForm
+
+        form = CustomUserCreationForm(data={
+            'username': 'emailuser',
+            'email': 'emailuser@example.com',
+            'password1': 'testpass123!',
+            'password2': 'testpass123!'
+        })
+
+        self.assertTrue(form.is_valid())
+        user = form.save()
+        self.assertEqual(user.email, 'emailuser@example.com')
 
 
 class ScenarioViewTests(TestCase):
@@ -601,3 +1296,45 @@ class BackgroundEmailTests(TestCase):
         queued_tasks = OrmQ.objects.all()
         self.assertEqual(queued_tasks.count(), 1)
         self.assertEqual(queued_tasks.first().func(), 'calculator.tasks.send_scenario_email')
+
+    def test_send_scenario_email_task_executes(self):
+        """Test that the background task function executes successfully."""
+        from calculator.tasks import send_scenario_email
+        from django.core import mail
+
+        scenario = Scenario.objects.create(
+            user=self.user,
+            name='Email Task Test',
+            data={
+                'current_age': '35',
+                'retirement_start_age': '67',
+                'current_savings': '100000',
+                'monthly_contribution': '2000',
+                'expected_return': '6',
+                'employer_match_rate': '50',
+                'annual_salary_increase': '2'
+            }
+        )
+
+        # Execute the task function directly
+        result = send_scenario_email(scenario.pk, self.user.email)
+
+        # Should return success message
+        self.assertIn('Email sent successfully', result)
+        self.assertIn(self.user.email, result)
+
+        # Should have sent an email (in console backend)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, f'Retirement Scenario: {scenario.name}')
+        self.assertIn(scenario.name, mail.outbox[0].body)
+        self.assertIn('Phase 1: Accumulation', mail.outbox[0].body)
+
+    def test_send_scenario_email_task_error_handling(self):
+        """Test that the background task handles errors gracefully."""
+        from calculator.tasks import send_scenario_email
+
+        # Try to email non-existent scenario
+        result = send_scenario_email(999999, 'test@example.com')
+
+        # Should return error message instead of crashing
+        self.assertIn('Error', result)
