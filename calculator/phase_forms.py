@@ -118,14 +118,23 @@ class AccumulationPhaseForm(BaseCalculatorForm):
 
         if current_age and retirement_start_age:
             if retirement_start_age <= current_age:
-                raise ValidationError('Retirement start age must be greater than current age.')
+                raise ValidationError(
+                    f'Your retirement age ({retirement_start_age}) must be greater than your current age ({current_age}). '
+                    'Please increase your retirement start age.'
+                )
 
             years_to_retirement = retirement_start_age - current_age
             if years_to_retirement < 5:
-                raise ValidationError('Less than 5 years to retirement is too short for accumulation phase.')
+                raise ValidationError(
+                    f'You have only {years_to_retirement} years until retirement. '
+                    'The accumulation phase requires at least 5 years. Consider adjusting your retirement age or current age.'
+                )
 
         if current_savings == 0 and monthly_contribution == 0:
-            raise ValidationError('You must have either current savings or monthly contributions.')
+            raise ValidationError(
+                'Please enter either current savings or monthly contributions (or both). '
+                'You need at least one source of funds to build your retirement portfolio.'
+            )
 
         return cleaned_data
 
@@ -221,11 +230,17 @@ class PhasedRetirementForm(BaseCalculatorForm):
 
         if phase_start_age and full_retirement_age:
             if full_retirement_age <= phase_start_age:
-                raise ValidationError('Full retirement age must be after phase start age.')
+                raise ValidationError(
+                    f'Your full retirement age ({full_retirement_age}) must be after your phased retirement start age ({phase_start_age}). '
+                    'Phased retirement is a transition period before full retirement.'
+                )
 
             phase_duration = full_retirement_age - phase_start_age
             if phase_duration > 20:
-                raise ValidationError('Phased retirement period seems unusually long (>20 years).')
+                raise ValidationError(
+                    f'Your phased retirement period is {phase_duration} years, which seems unusually long. '
+                    'Most phased retirements last 3-10 years. Consider shortening this period or using Active Retirement instead.'
+                )
 
         return cleaned_data
 
@@ -328,13 +343,23 @@ class ActiveRetirementForm(BaseCalculatorForm):
 
         if start_age and end_age:
             if end_age <= start_age:
-                raise ValidationError('Active retirement end age must be greater than start age.')
+                raise ValidationError(
+                    f'Your active retirement end age ({end_age}) must be greater than start age ({start_age}). '
+                    'This phase represents your early retirement years.'
+                )
 
             phase_duration = end_age - start_age
             if phase_duration < 5:
-                raise ValidationError('Active retirement phase should be at least 5 years.')
+                raise ValidationError(
+                    f'Your active retirement period is only {phase_duration} years. '
+                    'Plan for at least 5 years to account for the active early retirement lifestyle. '
+                    'Consider extending the end age or combining with late retirement.'
+                )
             if phase_duration > 30:
-                raise ValidationError('Active retirement phase seems unusually long (>30 years).')
+                raise ValidationError(
+                    f'Your active retirement period is {phase_duration} years, which is unusually long. '
+                    'Most active retirement phases last 10-20 years. Consider splitting this into Active and Late retirement phases.'
+                )
 
         return cleaned_data
 
@@ -458,10 +483,17 @@ class LateRetirementForm(BaseCalculatorForm):
 
         if start_age and life_expectancy:
             if life_expectancy <= start_age:
-                raise ValidationError('Life expectancy must be greater than late retirement start age.')
+                raise ValidationError(
+                    f'Your life expectancy ({life_expectancy}) must be greater than late retirement start age ({start_age}). '
+                    'Late retirement is your final phase leading up to end of life. Consider increasing life expectancy.'
+                )
 
             phase_duration = life_expectancy - start_age
             if phase_duration < 5:
-                raise ValidationError('Plan for at least 5 years in late retirement.')
+                raise ValidationError(
+                    f'Your late retirement period is only {phase_duration} years. '
+                    'Plan for at least 5 years to account for increased healthcare needs and legacy planning. '
+                    'Consider extending life expectancy or adjusting the start age.'
+                )
 
         return cleaned_data
