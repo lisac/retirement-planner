@@ -17,10 +17,18 @@ import json
 
 def cache_calculation(timeout=3600):
     """
-    Decorator to cache calculation results.
+    Decorator to cache calculation results using MD5 hashing of sorted input data.
 
     Args:
-        timeout: Cache timeout in seconds (default: 1 hour)
+        timeout (int): Cache timeout in seconds. Default is 3600 (1 hour).
+
+    Returns:
+        function: Decorated function with caching enabled.
+
+    Example:
+        @cache_calculation(timeout=1800)
+        def calculate_retirement(data):
+            return expensive_calculation(data)
     """
     def decorator(func):
         @wraps(func)
@@ -47,7 +55,17 @@ def cache_calculation(timeout=3600):
 
 @dataclass
 class AccumulationResults:
-    """Results from accumulation phase calculation"""
+    """
+    Results from accumulation phase calculation.
+
+    Attributes:
+        years_to_retirement (int): Number of years until retirement
+        total_personal_contributions (Decimal): Sum of all personal contributions
+        total_employer_contributions (Decimal): Sum of employer matching contributions
+        future_value (Decimal): Projected portfolio value at retirement
+        investment_gains (Decimal): Total gains from compound interest
+        final_monthly_contribution (Decimal): Monthly contribution at retirement (after salary increases)
+    """
     years_to_retirement: int
     total_personal_contributions: Decimal
     total_employer_contributions: Decimal
@@ -105,10 +123,43 @@ def calculate_accumulation_phase(data: dict) -> AccumulationResults:
     """
     Calculate accumulation phase: Building wealth through contributions.
 
-    Includes:
+    This phase models the working years where you build retirement savings through:
     - Compound interest on existing savings
-    - Regular contributions with optional employer match
-    - Optional salary increases affecting contribution amounts
+    - Regular monthly contributions
+    - Optional employer matching (50% up to 6% of salary)
+    - Optional annual salary increases
+
+    Args:
+        data (dict): Input parameters containing:
+            - current_age (int): Current age in years
+            - retirement_start_age (int): Target retirement age
+            - current_savings (float/Decimal): Current retirement savings
+            - monthly_contribution (float/Decimal): Monthly contribution amount
+            - employer_match_rate (float/Decimal, optional): Employer match rate (0-100)
+            - expected_return (float/Decimal): Expected annual return rate (0-100)
+            - annual_salary_increase (float/Decimal, optional): Annual salary increase (0-100)
+
+    Returns:
+        AccumulationResults: Dataclass containing:
+            - years_to_retirement: Duration of accumulation phase
+            - total_personal_contributions: Sum of personal contributions
+            - total_employer_contributions: Sum of employer matching
+            - future_value: Final portfolio value
+            - investment_gains: Total compound interest earned
+            - final_monthly_contribution: Monthly contribution at retirement
+
+    Example:
+        >>> data = {
+        ...     'current_age': 30,
+        ...     'retirement_start_age': 65,
+        ...     'current_savings': 50000,
+        ...     'monthly_contribution': 1000,
+        ...     'employer_match_rate': 3,
+        ...     'expected_return': 7,
+        ...     'annual_salary_increase': 2
+        ... }
+        >>> results = calculate_accumulation_phase(data)
+        >>> print(f"Portfolio at retirement: ${results.future_value:,.2f}")
     """
     current_age = int(data['current_age'])
     retirement_start_age = int(data['retirement_start_age'])

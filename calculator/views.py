@@ -63,8 +63,24 @@ def retirement_calculator(request):
 def multi_phase_calculator(request, scenario_id=None):
     """
     Multi-phase retirement calculator with tabbed interface.
-    Displays all 4 retirement phases in separate tabs.
-    Optionally loads a saved scenario.
+
+    Displays all 4 retirement phases in separate tabs:
+    - Phase 1: Accumulation (building wealth)
+    - Phase 2: Phased Retirement (semi-retirement transition)
+    - Phase 3: Active Retirement (early retirement years)
+    - Phase 4: Late Retirement (legacy & healthcare)
+
+    Optionally loads a saved scenario if scenario_id is provided.
+
+    Args:
+        request (HttpRequest): Django HTTP request object
+        scenario_id (int, optional): Primary key of saved scenario to load
+
+    Returns:
+        HttpResponse: Rendered template with phase forms and loaded scenario data
+
+    Template:
+        calculator/multi_phase_calculator.html
     """
     # If scenario_id is provided, load the scenario data
     initial_data = {}
