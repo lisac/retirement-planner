@@ -1,179 +1,123 @@
 # Retirement Planner
 
-A Django-based multi-phase retirement calculator with dynamic HTMX updates and modern UI.
+A Django-based multi-phase retirement calculator with user authentication, scenario management, and accessibility features.
+
+🌐 **Live Demo**: [retirement.mkdolor.com](https://retirement.mkdolor.com)
 
 ## Features
 
-- **Multi-Phase Planning**: Calculate across 4 retirement phases
-  - Accumulation (building wealth)
-  - Phased Retirement (semi-retirement transition)
-  - Active Retirement (early retirement years)
-  - Late Retirement (legacy & long-term care)
-- **HTMX-Powered**: Dynamic updates without page reloads
-- **Modern UI**: Tailwind CSS with smooth animations
-- **Responsive Design**: Works on desktop and mobile
+- **Multi-Phase Planning**: Calculate across 4 retirement phases (accumulation, phased retirement, active retirement, late retirement)
+- **User Authentication**: Secure registration and login with email verification
+- **Scenario Management**: Save, load, compare, and email retirement scenarios
+- **HTMX-Powered**: Dynamic calculations without page reloads
+- **Accessibility**: Full ARIA support, keyboard navigation, screen reader friendly
+- **Production Ready**: Deployed on Railway with security headers, caching, and error handling
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.13+
-- Node.js 18+ (for Tailwind)
+- Node.js 18+ (for Tailwind CSS)
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/marvokdolor/retirement-planner.git
 cd retirement-planner
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Create .env file
+# Configure environment
 cp .env.example .env  # Edit with your SECRET_KEY
 
-# Run migrations
+# Initialize database and Tailwind
 python manage.py migrate
-
-# Install Tailwind dependencies
 python manage.py tailwind install
 ```
 
-### Running the Application
+### Running Locally
 
-**Terminal 1 - Django:**
 ```bash
-source venv/bin/activate
+# Terminal 1 - Django
 python manage.py runserver
-```
 
-**Terminal 2 - Tailwind (hot reload):**
-```bash
-source venv/bin/activate
+# Terminal 2 - Tailwind
 python manage.py tailwind start
 ```
 
-Visit: http://127.0.0.1:8000/calculator/multi-phase/
+Visit: http://127.0.0.1:8000/
 
 ## Tech Stack
 
-- **Backend**: Django 6.0, django-htmx
-- **Frontend**: HTMX 2.0, Tailwind CSS v4
-- **Database**: SQLite (development)
+- **Backend**: Django 5.1, django-htmx 1.21
+- **Frontend**: HTMX 2.0.4, Tailwind CSS v4, Alpine.js 3.x
+- **Database**: SQLite (dev), PostgreSQL (production)
+- **Deployment**: Railway with Gunicorn
 
 ## Project Structure
 
-### Core Files
-
 ```
 calculator/
-├── models.py               # Scenario model (save/load retirement plans)
-├── views.py               # Main views (simple calc, multi-phase, CRUD)
-├── htmx_views.py          # HTMX endpoints for dynamic updates
-├── forms.py               # Simple calculator form
-├── phase_forms.py         # Multi-phase calculator forms
-├── calculator.py          # Simple retirement calculator (legacy)
-├── phase_calculator.py    # Multi-phase calculator (primary)
-├── urls.py                # URL routing
-├── admin.py               # Django admin configuration
-├── tests.py               # Test suite (16 tests)
-└── templates/calculator/
-    ├── multi_phase_calculator.html  # Main app
-    ├── scenario_list.html           # Saved scenarios
-    └── partials/                    # HTMX response fragments
+├── models.py               # Scenario model
+├── views.py                # Main views
+├── htmx_views.py           # HTMX endpoints
+├── forms.py                # Forms & validation
+├── phase_forms.py          # Multi-phase forms
+├── phase_calculator.py     # Calculation engine (with caching)
+├── tests.py                # Test suite
+└── templates/              # HTML templates
+
+templates/
+├── base.html               # Base template with nav/footer
+├── 404.html, 500.html      # Custom error pages
+└── registration/           # Auth templates
 ```
 
-### File Purposes
+## Testing
 
-- **calculator.py** - Original single-phase retirement calculator (legacy)
-- **phase_calculator.py** - Advanced multi-phase calculator (recommended for new features)
-- **views.py** - All views organized in sections:
-  - Simple Calculator (legacy)
-  - Multi-Phase Calculator (primary feature)
-  - Scenario CRUD (save/load/edit/delete)
-- **htmx_views.py** - HTMX-only endpoints for:
-  - Phase calculations
-  - Scenario saving
-  - Dynamic form updates
-
-## Key Calculations
-
-### Phase 1: Accumulation
-- Compound interest with employer matching
-- Salary increase adjustments
-- Future value projections
-
-### Phase 2: Phased Retirement
-- Part-time income tracking
-- Withdrawal vs contribution balance
-- Portfolio growth during transition
-
-### Phase 3: Active Retirement
-- Inflation-adjusted expenses
-- Social Security & pension income
-- Portfolio sustainability checks
-
-### Phase 4: Late Retirement
-- Long-term care cost analysis
-- Insurance coverage calculations
-- Legacy planning
-
-## Development
-
-### Run Tests
 ```bash
+# Run all tests
 python manage.py test
+
+# Run specific test
+python manage.py test calculator.tests.CalculatorFunctionTests
 ```
 
-### Create Superuser (for admin access)
-```bash
-python manage.py createsuperuser
-```
+## Future Enhancements
 
-### Collect Static Files (production)
-```bash
-python manage.py collectstatic
-```
+### High Priority
+- [ ] User profile edit page
+- [ ] Form state persistence across tabs
+- [ ] Social Security and Pension income tracking
 
-## Environment Variables
-
-Create a `.env` file:
-
-```env
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
-**Never commit `.env` to version control!**
-
-## Future Features
-
-- [ ] Long-term care (LTC) cost analysis and planning
-- [ ] Export scenarios to PDF/Excel
-- [ ] Interactive charts and portfolio visualizations
-- [ ] Email/share scenario results
-- [ ] What-if scenario modeling with adjustable variables
-- [ ] Retirement readiness score/dashboard
-- [ ] Tax optimization strategies
+### Medium Priority
+- [ ] Export to PDF/Excel
+- [ ] Interactive charts
+- [ ] What-if scenario modeling
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+
+Quick steps:
+1. Fork the repo
+2. Create feature branch
+3. Write tests
+4. Submit pull request
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+GNU General Public License v3.0 - See [LICENSE](LICENSE)
+
+**TL;DR**: Free to use/modify/distribute, but derivatives must remain open source.
 
 ## Acknowledgments
 
-Built with Django, HTMX, and Tailwind CSS.
+Built with [Django](https://www.djangoproject.com/), [HTMX](https://htmx.org/), [Tailwind CSS](https://tailwindcss.com/), and [Claude Code](https://claude.ai/claude-code)
+
+---
+
+**Disclaimer**: Educational tool only. Not financial advice. Consult a qualified advisor.
