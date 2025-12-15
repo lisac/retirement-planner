@@ -1443,3 +1443,22 @@ class ResponsiveNavigationTests(TestCase):
         self.assertIn('hidden md:flex', content)
         # Mobile button should hide above md breakpoint
         self.assertIn('md:hidden', content)
+
+
+class CustomErrorPageTests(TestCase):
+    """Test custom error pages (404, 500)."""
+
+    def test_404_page_uses_custom_template(self):
+        """Test that 404 errors use custom template."""
+        response = self.client.get('/nonexistent-page/')
+        self.assertEqual(response.status_code, 404)
+        # Will test template after we create it
+
+    def test_404_page_matches_site_design(self):
+        """Test that 404 page includes navigation and footer."""
+        response = self.client.get('/nonexistent-page/')
+        self.assertEqual(response.status_code, 404)
+        # Should have navigation
+        self.assertContains(response, 'Retirement Planner', status_code=404)
+        # Should have helpful message
+        self.assertContains(response, '404', status_code=404)

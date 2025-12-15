@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Retirement Planner{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="text-center px-4">
+        <div class="mb-8">
+            <h1 class="text-9xl font-bold text-blue-600">404</h1>
+            <div class="text-6xl mb-4">🔍</div>
+        </div>
+
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Page Not Found</h2>
+        <p class="text-xl text-gray-600 mb-8 max-w-md mx-auto">
+            The page you're looking for doesn't exist or has been moved.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'calculator:multi_phase_calculator' %}"
+               class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                Go to Calculator
+            </a>
+            <a href="{% url 'calculator:scenario_list' %}"
+               class="inline-block bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                View Scenarios
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
