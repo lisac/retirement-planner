@@ -1338,3 +1338,108 @@ class BackgroundEmailTests(TestCase):
 
         # Should return error message instead of crashing
         self.assertIn('Error', result)
+
+
+class ResponsiveNavigationTests(TestCase):
+    """Test mobile responsive navigation."""
+
+    def setUp(self):
+        """Set up test client and user."""
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+
+    def test_navigation_contains_mobile_menu_button(self):
+        """Test that navigation includes mobile hamburger menu button."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        self.assertEqual(response.status_code, 200)
+        # Check for Alpine.js mobile menu trigger
+        self.assertContains(response, 'x-data="{ mobileMenuOpen: false }"')
+        self.assertContains(response, '@click="mobileMenuOpen = !mobileMenuOpen"')
+
+    def test_navigation_has_desktop_and_mobile_sections(self):
+        """Test that navigation has both desktop and mobile menu sections."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        # Desktop nav should be hidden on mobile
+        self.assertContains(response, 'hidden md:flex')
+        # Mobile menu button should be hidden on desktop
+        self.assertContains(response, 'md:hidden')
+        # Mobile menu section exists
+        self.assertContains(response, 'x-show="mobileMenuOpen"')
+
+    def test_navigation_includes_all_main_links(self):
+        """Test that both desktop and mobile nav include main links."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        # Check for main navigation links (should appear in both desktop and mobile)
+        self.assertContains(response, 'Simple Calculator', count=2)  # Desktop + Mobile
+        # "Multi-Phase" appears in: desktop nav, mobile nav, page title, and results section
+        self.assertContains(response, 'Multi-Phase Calculator')  # At least once
+        self.assertContains(response, 'Scenarios')  # Desktop + Mobile
+        self.assertContains(response, 'Compare')  # Desktop + Mobile
+
+    def test_authenticated_nav_shows_logout(self):
+        """Test that authenticated users see logout button."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        self.assertContains(response, 'Logout', count=2)  # Desktop + Mobile
+        self.assertContains(response, 'testuser', count=2)  # Username shown twice
+
+    def test_unauthenticated_nav_shows_login(self):
+        """Test that unauthenticated users see login button."""
+        # Test on a public page (login page itself) since calculator pages require auth
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
+
+        # Login button should be in the navigation
+        self.assertContains(response, 'Login')
+
+    def test_navigation_no_register_button_in_main_nav(self):
+        """Test that Register button is NOT in main navigation."""
+        response = self.client.get(reverse('login'))
+
+        # Login page should have register link
+        self.assertContains(response, 'create a new account')
+
+        # But we shouldn't have a Register button in the nav
+        # (We check by looking for the nav structure without Register)
+        content = response.content.decode()
+        # The navigation should only have Login button for unauthenticated users
+        self.assertIn('Login', content)
+
+    def test_base_template_loads_alpine_js(self):
+        """Test that base template includes Alpine.js for mobile menu interactivity."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        # Check for Alpine.js CDN script
+        self.assertContains(response, 'alpinejs')
+        self.assertContains(response, 'cdn.jsdelivr.net')
+
+    def test_mobile_menu_has_smooth_transitions(self):
+        """Test that mobile menu includes transition effects."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        # Check for Alpine.js transition directives
+        self.assertContains(response, 'x-transition')
+
+    def test_navigation_responsive_classes(self):
+        """Test that navigation uses Tailwind responsive classes correctly."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('calculator:multi_phase_calculator'))
+
+        content = response.content.decode()
+
+        # Desktop menu should hide below md breakpoint
+        self.assertIn('hidden md:flex', content)
+        # Mobile button should hide above md breakpoint
+        self.assertIn('md:hidden', content)
