@@ -5,6 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Retirement Planner{% endblock %}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block description %}Plan your retirement across four life phases: accumulation, phased retirement, active retirement, and late retirement. Free retirement calculator with scenario comparison.{% endblock %}">
+    <meta name="author" content="Retirement Planner">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Retirement Planner - Plan Your Financial Future{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Interactive retirement planning tool with multi-phase calculations, scenario comparison, and detailed projections for your financial future.{% endblock %}">
+    <meta property="og:site_name" content="Retirement Planner">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{% block twitter_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="twitter:title" content="{% block twitter_title %}Retirement Planner - Plan Your Financial Future{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Interactive retirement planning tool with multi-phase calculations and scenario comparison.{% endblock %}">
+
     <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
     {% block extra_css %}{% endblock %}
 
@@ -121,9 +139,45 @@
 
     <!-- Footer (optional block) -->
     {% block footer %}
-    <footer class="bg-white mt-12 py-6 border-t border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 text-center text-gray-600 text-sm">
-            <p>&copy; {% now "Y" %} Retirement Planner. Built with Django & Tailwind CSS.</p>
+    <footer class="bg-white mt-12 py-8 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-gray-600">
+                <!-- About -->
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">About</h3>
+                    <p class="mb-2">A retirement planning tool to help you visualize your financial future across four life phases.</p>
+                    <p class="text-xs">Built with Django, HTMX, and Tailwind CSS.</p>
+                </div>
+
+                <!-- Links -->
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Resources</h3>
+                    <ul class="space-y-1">
+                        <li>
+                            <a href="https://github.com/marvokdolor/retirement-planner" target="_blank" rel="noopener" class="hover:text-blue-600">
+                                View on GitHub
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator" target="_blank" rel="noopener" class="hover:text-blue-600">
+                                Investor.gov Calculator
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Attribution -->
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Attribution</h3>
+                    <p class="mb-2">Calculation methodology inspired by <a href="https://www.investor.gov/" target="_blank" rel="noopener" class="text-blue-600 hover:underline">Investor.gov</a></p>
+                    <p class="text-xs">&copy; {% now "Y" %} Retirement Planner</p>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+                <p>Disclaimer: This tool provides estimates only. Consult a financial advisor for personalized advice.</p>
+            </div>
         </div>
     </footer>
     {% endblock %}
