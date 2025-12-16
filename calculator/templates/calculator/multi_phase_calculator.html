@@ -13,13 +13,9 @@
                     Multi-Phase Retirement Calculator
                 </h1>
             </div>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                 Plan your entire retirement journey across all four critical phases
             </p>
-            <a href="{% url 'calculator:multi_phase_calculator' %}"
-               class="inline-block bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition">
-                Clear All
-            </a>
         </div>
 
         {# Loaded Scenario Message #}
@@ -151,16 +147,24 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-blue-600 rounded-lg" id="accumulation-loading">
-                                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                    Calculating...
-                                </span>
-                                <span class="htmx-indicator-opposite block text-center" id="accumulation-loading">Calculate</span>
-                            </button>
+                            <div class="mt-6 flex gap-3">
+                                <button type="button"
+                                        onclick="clearPhaseForm('accumulation')"
+                                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition">
+                                    Clear
+                                </button>
+                                <button type="submit"
+                                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                                        hx-indicator="#accumulation-loading">
+                                    <span class="htmx-indicator" id="accumulation-loading">
+                                        <svg class="animate-spin h-5 w-5 inline mr-2" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                        </svg>
+                                    </span>
+                                    Calculate
+                                </button>
+                            </div>
                         </form>
                     </div>
 
@@ -236,16 +240,24 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-purple-600 rounded-lg" id="phased-retirement-loading">
-                                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                    Calculating...
-                                </span>
-                                <span class="htmx-indicator-opposite block text-center" id="phased-retirement-loading">Calculate</span>
-                            </button>
+                            <div class="mt-6 flex gap-3">
+                                <button type="button"
+                                        onclick="clearPhaseForm('phased-retirement')"
+                                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition">
+                                    Clear
+                                </button>
+                                <button type="submit"
+                                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                                        hx-indicator="#phased-retirement-loading">
+                                    <span class="htmx-indicator" id="phased-retirement-loading">
+                                        <svg class="animate-spin h-5 w-5 inline mr-2" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                        </svg>
+                                    </span>
+                                    Calculate
+                                </button>
+                            </div>
                         </form>
                     </div>
 
@@ -321,16 +333,24 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-orange-600 rounded-lg" id="active-retirement-loading">
-                                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 74 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                    Calculating...
-                                </span>
-                                <span class="htmx-indicator-opposite block text-center" id="active-retirement-loading">Calculate</span>
-                            </button>
+                            <div class="mt-6 flex gap-3">
+                                <button type="button"
+                                        onclick="clearPhaseForm('active-retirement')"
+                                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition">
+                                    Clear
+                                </button>
+                                <button type="submit"
+                                        class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                                        hx-indicator="#active-retirement-loading">
+                                    <span class="htmx-indicator" id="active-retirement-loading">
+                                        <svg class="animate-spin h-5 w-5 inline mr-2" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 74 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                        </svg>
+                                    </span>
+                                    Calculate
+                                </button>
+                            </div>
                         </form>
                     </div>
 
@@ -406,16 +426,24 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-indigo-600 rounded-lg" id="late-retirement-loading">
-                                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                    Calculating...
-                                </span>
-                                <span class="htmx-indicator-opposite block text-center" id="late-retirement-loading">Calculate</span>
-                            </button>
+                            <div class="mt-6 flex gap-3">
+                                <button type="button"
+                                        onclick="clearPhaseForm('late-retirement')"
+                                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition">
+                                    Clear
+                                </button>
+                                <button type="submit"
+                                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                                        hx-indicator="#late-retirement-loading">
+                                    <span class="htmx-indicator" id="late-retirement-loading">
+                                        <svg class="animate-spin h-5 w-5 inline mr-2" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                        </svg>
+                                    </span>
+                                    Calculate
+                                </button>
+                            </div>
                         </form>
                     </div>
 
@@ -606,10 +634,102 @@ function switchTab(phase) {
     }
 }
 
+// Store raw values for number formatting (WeakMap to avoid memory leaks)
+const inputRawValues = new WeakMap();
+
+// Clear phase form function
+function clearPhaseForm(phase) {
+    const contentDiv = document.getElementById('content-' + phase);
+    const inputs = contentDiv.querySelectorAll('input[type="number"], input[type="text"], select');
+    inputs.forEach(input => {
+        input.value = '';
+        // Reset to type="number" if it was changed to text
+        if (input.type === 'text' && input.getAttribute('type') !== 'text') {
+            input.type = 'number';
+        }
+        // Clear stored raw value
+        if (inputRawValues.has(input)) {
+            inputRawValues.delete(input);
+        }
+    });
+
+    // Clear results
+    const resultsDiv = contentDiv.querySelector('[id$="-results"]');
+    if (resultsDiv) {
+        resultsDiv.innerHTML = `
+            <div class="text-center">
+                <svg class="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <p>Fill out the form and calculate to see your results</p>
+            </div>
+        `;
+    }
+}
+
+// Format number with commas
+function formatNumberWithCommas(value) {
+    // Remove any non-digit characters except decimal point
+    value = value.replace(/[^\d.]/g, '');
+
+    // Split into integer and decimal parts
+    const parts = value.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    return parts.join('.');
+}
+
+// Strip commas from number
+function stripCommas(value) {
+    return value.replace(/,/g, '');
+}
+
 // Keyboard navigation for tabs
 document.addEventListener('DOMContentLoaded', function() {
     // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Add number formatting to all number inputs
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        // Format on blur (when user leaves the field)
+        input.addEventListener('blur', function(e) {
+            if (e.target.value) {
+                const cleanValue = e.target.value.replace(/,/g, '');
+                if (!isNaN(cleanValue) && cleanValue !== '') {
+                    // Format with commas for display
+                    const formatted = formatNumberWithCommas(cleanValue);
+                    // Temporarily change type to text to allow commas
+                    e.target.type = 'text';
+                    e.target.value = formatted;
+                    // Store raw value in WeakMap
+                    inputRawValues.set(input, cleanValue);
+                }
+            }
+        });
+
+        // Remove commas on focus (when user clicks in the field)
+        input.addEventListener('focus', function(e) {
+            const rawValue = inputRawValues.get(input);
+            if (rawValue) {
+                e.target.type = 'number';
+                e.target.value = rawValue;
+            }
+        });
+
+        // Strip commas before form submission (capture phase to run before validation)
+        const form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Ensure field is type="number" with raw value before validation
+                if (input.type === 'text') {
+                    input.type = 'number';
+                    const rawValue = inputRawValues.get(input);
+                    input.value = rawValue || stripCommas(input.value);
+                }
+            }, true); // Use capture phase to run before validation
+        }
+    });
 
     // Set up keyboard navigation for tab buttons
     const tabButtons = document.querySelectorAll('.tab-button');

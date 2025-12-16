@@ -53,6 +53,13 @@ def retirement_calculator(request):
     })
 
 
+def about(request):
+    """
+    Display the About page with information about the tool and creator.
+    """
+    return render(request, 'calculator/about.html')
+
+
 # =============================================================================
 # MULTI-PHASE CALCULATOR (Primary Feature)
 # =============================================================================

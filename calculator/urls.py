@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.retirement_calculator, name='retirement_calculator'),
     path('multi-phase/', views.multi_phase_calculator, name='multi_phase_calculator'),
     path('multi-phase/<int:scenario_id>/', views.multi_phase_calculator, name='load_scenario'),
+    path('about/', views.about, name='about'),
 
     # Original simple calculator HTMX endpoint (backwards compatibility)
     path('calculate/', htmx_views.calculate_htmx, name='calculate_htmx'),

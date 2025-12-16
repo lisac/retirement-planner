@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}About - Retirement Planner{% endblock %}
+
+{% block description %}Learn about Retirement Planner, why it was built, and how it helps you plan across four retirement phases.{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">About Retirement Planner</h1>
+        <p class="text-xl text-gray-600">A multi-phase retirement planning tool built to fill a gap in existing financial calculators.</p>
+    </div>
+
+    <!-- Why This Tool Exists -->
+    <section class="mb-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Why This Tool Exists</h2>
+        <div class="prose max-w-none text-gray-700">
+            <p class="mb-4">
+                Most retirement calculators assume a simple two-phase model: you save until retirement, then you withdraw. But real retirement planning is more nuanced. What about phased retirement where you work part-time? What about different withdrawal strategies in your 60s versus your 80s? What about planning for healthcare costs that escalate in late retirement?
+            </p>
+            <p class="mb-4">
+                This tool was built because <strong>existing calculators didn't support multi-phase planning</strong>. It models:
+            </p>
+            <ul class="list-disc pl-6 mb-4 space-y-2">
+                <li><strong>Phase 1 (Accumulation):</strong> Traditional saving years with compound growth</li>
+                <li><strong>Phase 2 (Phased Retirement):</strong> Transition years with reduced income and partial contributions</li>
+                <li><strong>Phase 3 (Active Retirement):</strong> Early retirement with higher withdrawal rates for travel and activities</li>
+                <li><strong>Phase 4 (Late Retirement):</strong> Later years with adjusted spending patterns and healthcare considerations</li>
+            </ul>
+            <p>
+                It provides detailed, phase-specific projections so you can see exactly how your portfolio evolves through each stage of life.
+            </p>
+        </div>
+    </section>
+
+    <br>
+    <br>
+
+    <!-- How to Help -->
+    <section class="mb-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">How You Can Help</h2>
+        <div class="bg-white border-2 border-gray-200 p-6 rounded-lg">
+            <p class="text-gray-700 mb-4">This is an open-source project and contributions are welcome!</p>
+            <div class="space-y-3">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Report Bugs</h3>
+                    <p class="text-sm text-gray-600">Found an issue? <a href="https://github.com/marvokdolor/retirement-planner/issues" target="_blank" rel="noopener" class="text-blue-600 hover:underline">Open an issue on GitHub</a></p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Contribute Code</h3>
+                    <p class="text-sm text-gray-600">Read our <a href="https://github.com/marvokdolor/retirement-planner/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="text-blue-600 hover:underline">Contributing Guide</a> and submit a pull request</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Suggest Features</h3>
+                    <p class="text-sm text-gray-600">Have an idea? <a href="https://github.com/marvokdolor/retirement-planner/discussions" target="_blank" rel="noopener" class="text-blue-600 hover:underline">Start a discussion on GitHub</a></p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Share It</h3>
+                    <p class="text-sm text-gray-600">If this tool helped you, share it with others who might benefit from multi-phase retirement planning</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
