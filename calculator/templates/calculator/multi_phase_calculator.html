@@ -151,18 +151,15 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors relative flex items-center justify-center min-h-[48px]">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center" id="accumulation-loading">
+                            <button type="submit" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
+                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-blue-600 rounded-lg" id="accumulation-loading">
                                     <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                     </svg>
                                     Calculating...
                                 </span>
-                                <span class="htmx-indicator-opposite" id="accumulation-loading">
-                                    <span class="hidden sm:inline">Calculate Accumulation Phase</span>
-                                    <span class="sm:hidden">Calculate Accumulation</span>
-                                </span>
+                                <span class="htmx-indicator-opposite block text-center" id="accumulation-loading">Calculate</span>
                             </button>
                         </form>
                     </div>
@@ -239,18 +236,15 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors relative flex items-center justify-center min-h-[48px]">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center" id="phased-retirement-loading">
+                            <button type="submit" class="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
+                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-purple-600 rounded-lg" id="phased-retirement-loading">
                                     <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                     </svg>
                                     Calculating...
                                 </span>
-                                <span class="htmx-indicator-opposite" id="phased-retirement-loading">
-                                    <span class="hidden sm:inline">Calculate Phased Retirement</span>
-                                    <span class="sm:hidden">Calculate Phased</span>
-                                </span>
+                                <span class="htmx-indicator-opposite block text-center" id="phased-retirement-loading">Calculate</span>
                             </button>
                         </form>
                     </div>
@@ -327,18 +321,15 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors relative flex items-center justify-center min-h-[48px]">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center" id="active-retirement-loading">
+                            <button type="submit" class="mt-6 w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
+                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-orange-600 rounded-lg" id="active-retirement-loading">
                                     <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 74 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                     </svg>
                                     Calculating...
                                 </span>
-                                <span class="htmx-indicator-opposite" id="active-retirement-loading">
-                                    <span class="hidden sm:inline">Calculate Active Retirement</span>
-                                    <span class="sm:hidden">Calculate Active</span>
-                                </span>
+                                <span class="htmx-indicator-opposite block text-center" id="active-retirement-loading">Calculate</span>
                             </button>
                         </form>
                     </div>
@@ -415,18 +406,15 @@
                                 {% endfor %}
                             </div>
 
-                            <button type="submit" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors relative flex items-center justify-center min-h-[48px]">
-                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center" id="late-retirement-loading">
+                            <button type="submit" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition relative">
+                                <span class="htmx-indicator absolute inset-0 flex items-center justify-center bg-indigo-600 rounded-lg" id="late-retirement-loading">
                                     <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                     </svg>
                                     Calculating...
                                 </span>
-                                <span class="htmx-indicator-opposite" id="late-retirement-loading">
-                                    <span class="hidden sm:inline">Calculate Late Retirement</span>
-                                    <span class="sm:hidden">Calculate Late</span>
-                                </span>
+                                <span class="htmx-indicator-opposite block text-center" id="late-retirement-loading">Calculate</span>
                             </button>
                         </form>
                     </div>
