@@ -171,12 +171,30 @@ class ScenarioNameForm(forms.ModelForm):
 class CustomUserCreationForm(UserCreationForm):
     """Custom registration form for saving scenarios."""
 
+    email = forms.EmailField(
+        required=False,
+        help_text='Optional. Only needed if you want to reset your password later.',
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'your.email@example.com (optional)'
+        })
+    )
+
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2')
+        fields = ('username', 'email', 'password1', 'password2')
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'placeholder': 'Choose a username'
             })
         }
+
+    def save(self, commit=True):
+        """Save email to user model if provided."""
+        user = super().save(commit=False)
+        if self.cleaned_data.get('email'):
+            user.email = self.cleaned_data['email']
+        if commit:
+            user.save()
+        return user
