@@ -113,19 +113,16 @@ def generate_retirement_pdf(scenario, include_charts=False):
     scenario_data = scenario.data
 
     # Phase 1: Accumulation
-    if 'phase1' in scenario_data:
+    # Handle both nested (phase1: {...}) and flat data structures
+    phase1_data = scenario_data.get('phase1', scenario_data)
+    if 'current_age' in phase1_data and 'retirement_start_age' in phase1_data:
         try:
-            phase1_data = scenario_data['phase1']
-            phase_results['phase1'] = calculate_accumulation_phase(
-                current_age=int(phase1_data.get('current_age', 30)),
-                retirement_start_age=int(phase1_data.get('retirement_start_age', 65)),
-                current_savings=float(phase1_data.get('current_savings', 0)),
-                monthly_contribution=float(phase1_data.get('monthly_contribution', 0)),
-                employer_match_rate=float(phase1_data.get('employer_match_rate', 0)),
-                expected_return=float(phase1_data.get('expected_return', 7)),
-                annual_salary_increase=float(phase1_data.get('annual_salary_increase', 0)),
-            )
-        except (KeyError, ValueError, TypeError):
+            # The phase calculator expects a dictionary, not individual arguments
+            phase_results['phase1'] = calculate_accumulation_phase(phase1_data)
+        except (KeyError, ValueError, TypeError) as e:
+            # Log error for debugging but continue
+            import sys
+            print(f"Error calculating Phase 1: {e}", file=sys.stderr)
             pass
 
     # Create summary table
@@ -135,11 +132,11 @@ def generate_retirement_pdf(scenario, include_charts=False):
     if 'phase1' in phase_results:
         summary_data.append([
             'Future Value at Retirement',
-            currency_format(phase_results['phase1'].get('future_value'))
+            currency_format(phase_results['phase1'].future_value)
         ])
         summary_data.append([
             'Years to Retirement',
-            f"{phase_results['phase1'].get('years_to_retirement', 0)} years"
+            f"{phase_results['phase1'].years_to_retirement} years"
         ])
 
     summary_table = Table(summary_data, colWidths=[3.5*inch, 2.5*inch])
@@ -166,19 +163,22 @@ def generate_retirement_pdf(scenario, include_charts=False):
         elements.append(Paragraph("Phase 1: Accumulation (Pre-Retirement)", subheading_style))
         result = phase_results['phase1']
 
+        # Use the same phase1_data variable we created earlier (handles both nested and flat)
+        input_data = scenario_data.get('phase1', scenario_data)
+
         phase1_data = [
             ['Metric', 'Value'],
-            ['Current Age', f"{scenario_data['phase1'].get('current_age', 'N/A')} years"],
-            ['Planned Retirement Age', f"{scenario_data['phase1'].get('retirement_start_age', 'N/A')} years"],
-            ['Years to Retirement', f"{result.get('years_to_retirement', 0)} years"],
-            ['Current Savings', currency_format(scenario_data['phase1'].get('current_savings'))],
-            ['Monthly Contribution', currency_format(scenario_data['phase1'].get('monthly_contribution'))],
-            ['Expected Return', f"{scenario_data['phase1'].get('expected_return', 0)}%"],
+            ['Current Age', f"{input_data.get('current_age', 'N/A')} years"],
+            ['Planned Retirement Age', f"{input_data.get('retirement_start_age', 'N/A')} years"],
+            ['Years to Retirement', f"{result.years_to_retirement} years"],
+            ['Current Savings', currency_format(input_data.get('current_savings'))],
+            ['Monthly Contribution', currency_format(input_data.get('monthly_contribution'))],
+            ['Expected Return', f"{input_data.get('expected_return', 0)}%"],
             ['', ''],  # Spacer row
-            ['Total Personal Contributions', currency_format(result.get('total_personal_contributions'))],
-            ['Total Employer Match', currency_format(result.get('total_employer_contributions'))],
-            ['Investment Gains', currency_format(result.get('investment_gains'))],
-            ['Future Value', currency_format(result.get('future_value'))],
+            ['Total Personal Contributions', currency_format(result.total_personal_contributions)],
+            ['Total Employer Match', currency_format(result.total_employer_contributions)],
+            ['Investment Gains', currency_format(result.investment_gains)],
+            ['Future Value', currency_format(result.future_value)],
         ]
 
         phase1_table = Table(phase1_data, colWidths=[3.5*inch, 2.5*inch])
@@ -210,11 +210,13 @@ def generate_retirement_pdf(scenario, include_charts=False):
     elements.append(Spacer(1, 0.1*inch))
 
     # Create assumptions table
-    if 'phase1' in scenario_data:
+    # Use the same logic to handle both nested and flat data structures
+    assumptions_input_data = scenario_data.get('phase1', scenario_data)
+    if 'expected_return' in assumptions_input_data:
         assumptions_data = [
             ['Assumption', 'Value'],
-            ['Expected Annual Return', f"{scenario_data['phase1'].get('expected_return', 0)}%"],
-            ['Annual Salary Increase', f"{scenario_data['phase1'].get('annual_salary_increase', 0)}%"],
+            ['Expected Annual Return', f"{assumptions_input_data.get('expected_return', 0)}%"],
+            ['Annual Salary Increase', f"{assumptions_input_data.get('annual_salary_increase', 0)}%"],
             ['Inflation Rate (assumed)', "3.0%"],
         ]
 

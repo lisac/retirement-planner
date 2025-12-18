@@ -35,4 +35,8 @@ urlpatterns = [
 
     # Scenario comparison
     path('scenarios/compare/', views.compare_scenarios, name='scenario_compare'),
+
+    # PDF report generation
+    path('scenarios/<int:scenario_id>/pdf/', views.generate_pdf_report, name='generate_pdf_report'),
+    path('pdf/current/', views.generate_pdf_from_current, name='generate_pdf_from_current'),
 ]

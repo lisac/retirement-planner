@@ -283,3 +283,91 @@ def register(request):
         form = CustomUserCreationForm()
 
     return render(request, 'registration/register.html', {'form': form})
+
+
+# =============================================================================
+# PDF REPORT GENERATION
+# =============================================================================
+
+@login_required
+def generate_pdf_report(request, scenario_id):
+    """
+    Generate and download a PDF report for a saved scenario.
+
+    Args:
+        scenario_id: ID of the scenario to generate PDF for
+
+    Query params:
+        include_charts: 'true' to include Monte Carlo charts (optional)
+    """
+    from .pdf_generator import generate_retirement_pdf
+
+    # Get scenario and ensure user owns it
+    scenario = get_object_or_404(Scenario, id=scenario_id, user=request.user)
+
+    # Check if charts should be included
+    include_charts = request.GET.get('include_charts', 'false').lower() == 'true'
+
+    # Generate PDF
+    pdf_buffer = generate_retirement_pdf(scenario, include_charts=include_charts)
+
+    # Create response
+    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+
+    # Set filename (clean scenario name for filename)
+    filename = f"{scenario.name.replace(' ', '_')}_Report.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    return response
+
+
+@login_required
+def generate_pdf_from_current(request):
+    """
+    Generate PDF from current calculator state (not saved scenario).
+
+    Creates a temporary scenario from POST data and generates PDF.
+    """
+    from .pdf_generator import generate_retirement_pdf
+    from .models import Scenario
+
+    if request.method != 'POST':
+        return HttpResponse("Method not allowed", status=405)
+
+    # Create temporary scenario from POST data
+    # Gather all phase data from the request
+    scenario_data = {}
+
+    # Phase 1 data
+    if request.POST.get('current_age'):
+        scenario_data['phase1'] = {
+            'current_age': request.POST.get('current_age'),
+            'retirement_start_age': request.POST.get('retirement_start_age'),
+            'current_savings': request.POST.get('current_savings', 0),
+            'monthly_contribution': request.POST.get('monthly_contribution', 0),
+            'employer_match_rate': request.POST.get('employer_match_rate', 0),
+            'expected_return': request.POST.get('expected_return', 7),
+            'annual_salary_increase': request.POST.get('annual_salary_increase', 0),
+        }
+
+    # Create temporary scenario (not saved to database)
+    temp_scenario = Scenario(
+        user=request.user,
+        name=request.POST.get('scenario_name', 'Current Calculation'),
+        data=scenario_data
+    )
+
+    # Check if charts should be included
+    include_charts = request.POST.get('include_monte_carlo', 'false').lower() == 'true'
+
+    # Generate PDF
+    pdf_buffer = generate_retirement_pdf(temp_scenario, include_charts=include_charts)
+
+    # Create response
+    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+
+    # Set filename
+    filename = f"Retirement_Plan_Report.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    return response
