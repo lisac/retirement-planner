@@ -3,15 +3,15 @@ from django.urls import reverse
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from decimal import Decimal
-from .models import Scenario
-from .calculator import calculate_retirement_savings
-from .phase_calculator import (
+from calculator.models import Scenario
+from calculator.calculator import calculate_retirement_savings
+from calculator.phase_calculator import (
     calculate_accumulation_phase,
     calculate_phased_retirement_phase,
     calculate_active_retirement_phase,
     calculate_late_retirement_phase
 )
-from .admin import ScenarioAdmin
+from calculator.admin import ScenarioAdmin
 
 
 class ScenarioModelTests(TestCase):
