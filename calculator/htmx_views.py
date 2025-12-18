@@ -260,26 +260,30 @@ def _create_trajectory_chart(years, yearly_10th, yearly_50th, yearly_90th, title
 
     # Update layout
     fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor='center'),
+        title=dict(text=title, x=0.5, xanchor='center', font=dict(size=16)),
         xaxis_title="Years from Now",
         yaxis_title="Portfolio Value",
         hovermode='x unified',
         template='plotly_white',
-        height=400,
-        margin=dict(l=60, r=30, t=50, b=50),
+        height=450,
+        margin=dict(l=60, r=30, t=80, b=50),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.02,
+            yanchor="top",
+            y=-0.15,
             xanchor="center",
-            x=0.5
-        )
+            x=0.5,
+            bgcolor="rgba(255,255,255,0.8)",
+            bordercolor="rgba(0,0,0,0.1)",
+            borderwidth=1
+        ),
+        font=dict(size=12)
     )
 
     # Format y-axis as currency
     fig.update_yaxes(tickformat='$,.0f')
 
-    # Return HTML div
+    # Return HTML div - use 'cdn' for first call, rely on browser cache for subsequent calls
     return fig.to_html(include_plotlyjs='cdn', div_id='monte-carlo-chart', config={'displayModeBar': False})
 
 
