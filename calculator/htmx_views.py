@@ -220,7 +220,7 @@ def save_scenario(request):
 
 # ===== MONTE CARLO SIMULATIONS =====
 
-def _create_trajectory_chart(years, yearly_10th, yearly_50th, yearly_90th, title="Portfolio Growth Projections", starting_age=None):
+def _create_trajectory_chart(years, yearly_10th, yearly_50th, yearly_90th, title="Portfolio Growth Projections", starting_age=None, chart_id="monte-carlo-chart"):
     """
     Create a Plotly line chart showing 3 trajectory lines (10th, 50th, 90th percentiles).
 
@@ -231,6 +231,7 @@ def _create_trajectory_chart(years, yearly_10th, yearly_50th, yearly_90th, title
         yearly_90th: 90th percentile values by year
         title: Chart title
         starting_age: Optional starting age to display ages on x-axis instead of years
+        chart_id: Unique ID for the chart div (important when multiple charts on same page)
 
     Returns HTML div containing the interactive chart.
     """
@@ -302,7 +303,7 @@ def _create_trajectory_chart(years, yearly_10th, yearly_50th, yearly_90th, title
     fig.update_yaxes(tickformat='$,.0f')
 
     # Return HTML div - use 'cdn' for first call, rely on browser cache for subsequent calls
-    return fig.to_html(include_plotlyjs='cdn', div_id='monte-carlo-chart', config={'displayModeBar': False})
+    return fig.to_html(include_plotlyjs='cdn', div_id=chart_id, config={'displayModeBar': False})
 
 
 @require_POST
@@ -351,7 +352,8 @@ def monte_carlo_accumulation(request):
             yearly_50th=results.yearly_50th,
             yearly_90th=results.yearly_90th,
             title="Portfolio Growth Projections",
-            starting_age=current_age
+            starting_age=current_age,
+            chart_id="monte-carlo-chart-phase1"
         )
 
         # Return results partial
@@ -382,6 +384,8 @@ def monte_carlo_withdrawal(request):
         # Calculate years from age fields (different forms have different field names)
         years = 0
         start_age = None
+        chart_id = "monte-carlo-chart-withdrawal"  # Default
+
         if request.POST.get('years'):
             years = int(request.POST.get('years'))
         elif request.POST.get('active_retirement_start_age') and request.POST.get('active_retirement_end_age'):
@@ -389,16 +393,19 @@ def monte_carlo_withdrawal(request):
             start_age = int(request.POST.get('active_retirement_start_age', 0))
             end_age = int(request.POST.get('active_retirement_end_age', 0))
             years = max(0, end_age - start_age)
+            chart_id = "monte-carlo-chart-phase3"
         elif request.POST.get('late_retirement_start_age') and request.POST.get('life_expectancy'):
             # Phase 4: Late Retirement
             start_age = int(request.POST.get('late_retirement_start_age', 0))
             life_expectancy = int(request.POST.get('life_expectancy', 0))
             years = max(0, life_expectancy - start_age)
+            chart_id = "monte-carlo-chart-phase4"
         elif request.POST.get('phase_start_age') and request.POST.get('full_retirement_age'):
             # Phase 2: Phased Retirement
             start_age = int(request.POST.get('phase_start_age', 0))
             end_age = int(request.POST.get('full_retirement_age', 0))
             years = max(0, end_age - start_age)
+            chart_id = "monte-carlo-chart-phase2"
 
         expected_return = float(request.POST.get('expected_return', 0))
         # Use user-specified volatility, default to 10% (moderate)
@@ -423,7 +430,8 @@ def monte_carlo_withdrawal(request):
             yearly_50th=results.yearly_50th,
             yearly_90th=results.yearly_90th,
             title="Portfolio Withdrawal Projections",
-            starting_age=start_age
+            starting_age=start_age,
+            chart_id=chart_id
         )
 
         # Return results partial
