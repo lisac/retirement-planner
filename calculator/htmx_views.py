@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 import json
+import plotly.graph_objects as go
 from .forms import RetirementCalculatorForm, ScenarioNameForm
 from .calculator import calculate_retirement_savings
 from .phase_forms import (
@@ -219,6 +220,69 @@ def save_scenario(request):
 
 # ===== MONTE CARLO SIMULATIONS =====
 
+def _create_trajectory_chart(years, yearly_10th, yearly_50th, yearly_90th, title="Portfolio Growth Projections"):
+    """
+    Create a Plotly line chart showing 3 trajectory lines (10th, 50th, 90th percentiles).
+
+    Returns HTML div containing the interactive chart.
+    """
+    fig = go.Figure()
+
+    # Add 90th percentile line (optimistic)
+    fig.add_trace(go.Scatter(
+        x=years,
+        y=yearly_90th,
+        mode='lines',
+        name='Optimistic (90th percentile)',
+        line=dict(color='#10b981', width=2),  # green
+        hovertemplate='Year %{x}<br>$%{y:,.0f}<extra></extra>'
+    ))
+
+    # Add 50th percentile line (median)
+    fig.add_trace(go.Scatter(
+        x=years,
+        y=yearly_50th,
+        mode='lines',
+        name='Median (50th percentile)',
+        line=dict(color='#3b82f6', width=3),  # blue, thicker
+        hovertemplate='Year %{x}<br>$%{y:,.0f}<extra></extra>'
+    ))
+
+    # Add 10th percentile line (pessimistic)
+    fig.add_trace(go.Scatter(
+        x=years,
+        y=yearly_10th,
+        mode='lines',
+        name='Pessimistic (10th percentile)',
+        line=dict(color='#ef4444', width=2),  # red
+        hovertemplate='Year %{x}<br>$%{y:,.0f}<extra></extra>'
+    ))
+
+    # Update layout
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title="Years from Now",
+        yaxis_title="Portfolio Value",
+        hovermode='x unified',
+        template='plotly_white',
+        height=400,
+        margin=dict(l=60, r=30, t=50, b=50),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="center",
+            x=0.5
+        )
+    )
+
+    # Format y-axis as currency
+    fig.update_yaxes(tickformat='$,.0f')
+
+    # Return HTML div
+    return fig.to_html(include_plotlyjs='cdn', div_id='monte-carlo-chart', config={'displayModeBar': False})
+
+
 @require_POST
 def monte_carlo_accumulation(request):
     """
@@ -258,9 +322,19 @@ def monte_carlo_accumulation(request):
             annual_contribution_increase=annual_salary_increase
         )
 
+        # Generate trajectory chart
+        chart_html = _create_trajectory_chart(
+            years=results.years,
+            yearly_10th=results.yearly_10th,
+            yearly_50th=results.yearly_50th,
+            yearly_90th=results.yearly_90th,
+            title="Portfolio Growth Projections"
+        )
+
         # Return results partial
         return render(request, 'calculator/partials/monte_carlo_accumulation.html', {
-            'results': results
+            'results': results,
+            'chart_html': chart_html
         })
 
     except (ValueError, TypeError, KeyError) as e:
@@ -281,7 +355,27 @@ def monte_carlo_withdrawal(request):
         # Extract and validate parameters
         starting_portfolio = float(request.POST.get('starting_portfolio', 0))
         annual_withdrawal = float(request.POST.get('annual_withdrawal', 0))
-        years = int(request.POST.get('years', 0))
+
+        # Calculate years from age fields (different forms have different field names)
+        years = 0
+        if request.POST.get('years'):
+            years = int(request.POST.get('years'))
+        elif request.POST.get('active_retirement_start_age') and request.POST.get('active_retirement_end_age'):
+            # Phase 3: Active Retirement
+            start_age = int(request.POST.get('active_retirement_start_age', 0))
+            end_age = int(request.POST.get('active_retirement_end_age', 0))
+            years = max(0, end_age - start_age)
+        elif request.POST.get('late_retirement_start_age') and request.POST.get('life_expectancy'):
+            # Phase 4: Late Retirement
+            start_age = int(request.POST.get('late_retirement_start_age', 0))
+            life_expectancy = int(request.POST.get('life_expectancy', 0))
+            years = max(0, life_expectancy - start_age)
+        elif request.POST.get('phase_start_age') and request.POST.get('phased_retirement_end_age'):
+            # Phase 2: Phased Retirement
+            start_age = int(request.POST.get('phase_start_age', 0))
+            end_age = int(request.POST.get('phased_retirement_end_age', 0))
+            years = max(0, end_age - start_age)
+
         expected_return = float(request.POST.get('expected_return', 0))
         # Use user-specified volatility, default to 10% (moderate)
         variance = float(request.POST.get('return_volatility', 10.0))
@@ -298,9 +392,19 @@ def monte_carlo_withdrawal(request):
             runs=10000
         )
 
+        # Generate trajectory chart
+        chart_html = _create_trajectory_chart(
+            years=results.years,
+            yearly_10th=results.yearly_10th,
+            yearly_50th=results.yearly_50th,
+            yearly_90th=results.yearly_90th,
+            title="Portfolio Withdrawal Projections"
+        )
+
         # Return results partial
         return render(request, 'calculator/partials/monte_carlo_withdrawal.html', {
-            'results': results
+            'results': results,
+            'chart_html': chart_html
         })
 
     except (ValueError, TypeError, KeyError) as e:

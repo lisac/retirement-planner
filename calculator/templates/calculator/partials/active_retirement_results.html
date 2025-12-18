@@ -134,8 +134,7 @@
             class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
             hx-post="{% url 'calculator:monte_carlo_withdrawal' %}"
             hx-target="#monte-carlo-results-phase3"
-            hx-include="[name='starting_portfolio'],[name='annual_withdrawal'],[name='active_retirement_duration'],[name='expected_return'],[name='variance'],[name='inflation_rate']"
-            hx-vals='{"years": document.querySelector("[name=active_retirement_duration]").value}'
+            hx-include="#active-retirement-form"
             hx-indicator="#mc-spinner-phase3">
             <span id="mc-spinner-phase3" class="htmx-indicator">
                 <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

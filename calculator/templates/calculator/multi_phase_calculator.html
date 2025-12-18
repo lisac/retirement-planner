@@ -202,6 +202,7 @@
                         </details>
 
                         <form method="post"
+                              id="phased-retirement-form"
                               hx-post="{% url 'calculator:calculate_phased_retirement' %}"
                               hx-target="#phased-retirement-results"
                               hx-indicator="#phased-retirement-loading"
@@ -312,6 +313,7 @@
                         </details>
 
                         <form method="post"
+                              id="active-retirement-form"
                               hx-post="{% url 'calculator:calculate_active_retirement' %}"
                               hx-target="#active-retirement-results"
                               hx-indicator="#active-retirement-loading"
@@ -422,6 +424,7 @@
                         </details>
 
                         <form method="post"
+                              id="late-retirement-form"
                               hx-post="{% url 'calculator:calculate_late_retirement' %}"
                               hx-target="#late-retirement-results"
                               hx-indicator="#late-retirement-loading"

@@ -80,4 +80,30 @@
         <strong>How to interpret:</strong> There's a 50% chance your portfolio will be above the median value,
         and a 10% chance it will be below the pessimistic scenario. Plan conservatively using the 25th-50th percentile range.
     </div>
+
+    {# Collapsible chart section #}
+    <div class="mt-6 border-t border-purple-200 pt-4">
+        <button
+            type="button"
+            class="w-full flex items-center justify-between text-left text-sm font-medium text-purple-900 hover:text-purple-700 transition-colors"
+            onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180');">
+            <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                </svg>
+                View Growth Chart
+            </span>
+            <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div class="hidden mt-4">
+            {{ chart_html|safe }}
+            <p class="text-xs text-gray-500 mt-2">
+                This chart shows how your portfolio might grow over time under different market scenarios.
+                The median line (blue) represents the most likely outcome, while the other lines show optimistic and pessimistic scenarios.
+            </p>
+        </div>
+    </div>
 </div>

@@ -23,6 +23,11 @@ class MonteCarloResults:
     std_deviation: Decimal
     success_rate: Decimal  # % of simulations that don't run out of money
     all_outcomes: list  # For charting (optional, can be large)
+    # Year-by-year percentile trajectories for charting
+    yearly_10th: list = None  # 10th percentile by year
+    yearly_50th: list = None  # Median by year
+    yearly_90th: list = None  # 90th percentile by year
+    years: list = None  # Year labels for x-axis
 
 
 def run_accumulation_monte_carlo(
@@ -61,10 +66,15 @@ def run_accumulation_monte_carlo(
     monthly_std = annual_std / np.sqrt(12)
 
     results = []
+    # Track year-by-year values for all simulations
+    yearly_balances = [[] for _ in range(years + 1)]  # +1 to include starting year
 
     for _ in range(runs):
         balance = current_savings
         current_monthly_contribution = monthly_contribution
+
+        # Record starting balance
+        yearly_balances[0].append(balance)
 
         for month in range(months):
             # Generate random monthly return from normal distribution
@@ -73,14 +83,30 @@ def run_accumulation_monte_carlo(
             # Apply return and add contribution
             balance = balance * (1 + random_return) + current_monthly_contribution
 
-            # Increase contribution annually
-            if (month + 1) % 12 == 0 and contribution_growth_rate > 0:
-                current_monthly_contribution *= (1 + contribution_growth_rate)
+            # Increase contribution annually and record yearly balance
+            if (month + 1) % 12 == 0:
+                year_index = (month + 1) // 12
+                yearly_balances[year_index].append(balance)
+
+                if contribution_growth_rate > 0:
+                    current_monthly_contribution *= (1 + contribution_growth_rate)
 
         results.append(balance)
 
     # Convert to numpy array for statistical calculations
     outcomes = np.array(results)
+
+    # Calculate year-by-year percentiles for charting
+    yearly_10th = []
+    yearly_50th = []
+    yearly_90th = []
+    year_labels = list(range(years + 1))  # 0, 1, 2, ..., years
+
+    for year_balances in yearly_balances:
+        year_array = np.array(year_balances)
+        yearly_10th.append(float(np.percentile(year_array, 10)))
+        yearly_50th.append(float(np.percentile(year_array, 50)))
+        yearly_90th.append(float(np.percentile(year_array, 90)))
 
     return MonteCarloResults(
         mean=Decimal(str(np.mean(outcomes))),
@@ -92,7 +118,11 @@ def run_accumulation_monte_carlo(
         percentile_90=Decimal(str(np.percentile(outcomes, 90))),
         std_deviation=Decimal(str(np.std(outcomes))),
         success_rate=Decimal('100.0'),  # All outcomes succeed in accumulation
-        all_outcomes=[float(x) for x in outcomes]  # For charting
+        all_outcomes=[float(x) for x in outcomes],  # For charting
+        yearly_10th=yearly_10th,
+        yearly_50th=yearly_50th,
+        yearly_90th=yearly_90th,
+        years=year_labels
     )
 
 
@@ -135,11 +165,16 @@ def run_withdrawal_monte_carlo(
 
     results = []
     successes = 0  # Count simulations where portfolio doesn't deplete
+    # Track year-by-year values for all simulations
+    yearly_balances = [[] for _ in range(years + 1)]  # +1 to include starting year
 
     for _ in range(runs):
         balance = starting_portfolio
         current_withdrawal = monthly_withdrawal
         depleted = False
+
+        # Record starting balance
+        yearly_balances[0].append(balance)
 
         for month in range(months):
             # Adjust withdrawal for inflation annually
@@ -156,6 +191,17 @@ def run_withdrawal_monte_carlo(
             if balance <= 0:
                 depleted = True
                 balance = 0
+
+            # Record yearly balance
+            if (month + 1) % 12 == 0:
+                year_index = (month + 1) // 12
+                yearly_balances[year_index].append(balance)
+
+            # Break early if depleted
+            if depleted and (month + 1) % 12 == 0:
+                # Fill remaining years with 0 for this simulation
+                for remaining_year in range(year_index + 1, years + 1):
+                    yearly_balances[remaining_year].append(0)
                 break
 
         results.append(balance)
@@ -165,6 +211,18 @@ def run_withdrawal_monte_carlo(
     # Convert to numpy array for statistical calculations
     outcomes = np.array(results)
     success_rate = (successes / runs) * 100
+
+    # Calculate year-by-year percentiles for charting
+    yearly_10th = []
+    yearly_50th = []
+    yearly_90th = []
+    year_labels = list(range(years + 1))  # 0, 1, 2, ..., years
+
+    for year_balances in yearly_balances:
+        year_array = np.array(year_balances)
+        yearly_10th.append(float(np.percentile(year_array, 10)))
+        yearly_50th.append(float(np.percentile(year_array, 50)))
+        yearly_90th.append(float(np.percentile(year_array, 90)))
 
     return MonteCarloResults(
         mean=Decimal(str(np.mean(outcomes))),
@@ -176,5 +234,9 @@ def run_withdrawal_monte_carlo(
         percentile_90=Decimal(str(np.percentile(outcomes, 90))),
         std_deviation=Decimal(str(np.std(outcomes))),
         success_rate=Decimal(str(success_rate)),
-        all_outcomes=[float(x) for x in outcomes]
+        all_outcomes=[float(x) for x in outcomes],
+        yearly_10th=yearly_10th,
+        yearly_50th=yearly_50th,
+        yearly_90th=yearly_90th,
+        years=year_labels
     )
