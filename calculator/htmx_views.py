@@ -370,10 +370,10 @@ def monte_carlo_withdrawal(request):
             start_age = int(request.POST.get('late_retirement_start_age', 0))
             life_expectancy = int(request.POST.get('life_expectancy', 0))
             years = max(0, life_expectancy - start_age)
-        elif request.POST.get('phase_start_age') and request.POST.get('phased_retirement_end_age'):
+        elif request.POST.get('phase_start_age') and request.POST.get('full_retirement_age'):
             # Phase 2: Phased Retirement
             start_age = int(request.POST.get('phase_start_age', 0))
-            end_age = int(request.POST.get('phased_retirement_end_age', 0))
+            end_age = int(request.POST.get('full_retirement_age', 0))
             years = max(0, end_age - start_age)
 
         expected_return = float(request.POST.get('expected_return', 0))
