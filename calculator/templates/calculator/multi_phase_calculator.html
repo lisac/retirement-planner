@@ -4,7 +4,7 @@
 {% block title %}Multi-Phase Retirement Calculator{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12" data-user-id="{% if user.is_authenticated %}{{ user.id }}{% else %}anonymous{% endif %}">
     <div class="container mx-auto px-4">
         {# Header #}
         <div class="text-center mb-8">
@@ -126,6 +126,7 @@
 
                         <form method="post"
                               id="accumulation-form"
+                              data-persist="phase1"
                               hx-post="{% url 'calculator:calculate_accumulation' %}"
                               hx-target="#accumulation-results"
                               hx-indicator="#accumulation-loading"
@@ -203,6 +204,7 @@
 
                         <form method="post"
                               id="phased-retirement-form"
+                              data-persist="phase2"
                               hx-post="{% url 'calculator:calculate_phased_retirement' %}"
                               hx-target="#phased-retirement-results"
                               hx-indicator="#phased-retirement-loading"
@@ -314,6 +316,7 @@
 
                         <form method="post"
                               id="active-retirement-form"
+                              data-persist="phase3"
                               hx-post="{% url 'calculator:calculate_active_retirement' %}"
                               hx-target="#active-retirement-results"
                               hx-indicator="#active-retirement-loading"
@@ -425,6 +428,7 @@
 
                         <form method="post"
                               id="late-retirement-form"
+                              data-persist="phase4"
                               hx-post="{% url 'calculator:calculate_late_retirement' %}"
                               hx-target="#late-retirement-results"
                               hx-indicator="#late-retirement-loading"
@@ -551,6 +555,13 @@
                             <span>Save Scenario</span>
                         </button>
                     </form>
+                    <div class="mt-4 text-center">
+                        <button type="button"
+                                onclick="if(confirm('Clear all saved form data? You will need to re-enter your information.')) { window.FormPersistence.clearAllFormData(); location.reload(); }"
+                                class="text-sm text-gray-500 hover:text-red-600 underline">
+                            Clear Saved Form Data
+                        </button>
+                    </div>
                 </div>
             {% else %}
                 <div class="bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-8 text-center">
@@ -644,6 +655,9 @@ input:focus, select:focus, textarea:focus {
     transition: transform 0.2s ease-out;
 }
 </style>
+
+<!-- Form State Persistence Script -->
+<script src="{% static 'calculator/js/form-persistence.js' %}"></script>
 
 <script>
 function switchTab(phase) {

@@ -6,30 +6,30 @@ A Django-based multi-phase retirement calculator with user authentication, scena
 
 ## Table of Contents
 
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Testing](#testing)
-- [Future Enhancements](#future-enhancements)
-- [Contributing](#contributing)
-- [License](#license)
+-   [Features](#features)
+-   [Quick Start](#quick-start)
+-   [Tech Stack](#tech-stack)
+-   [Project Structure](#project-structure)
+-   [Testing](#testing)
+-   [Future Enhancements](#future-enhancements)
+-   [Contributing](#contributing)
+-   [License](#license)
 
 ## Features
 
-- **Multi-Phase Planning**: Calculate across 4 retirement phases (accumulation, phased retirement, active retirement, late retirement)
-- **User Authentication**: Secure registration and login
-- **Scenario Management**: Save, load, compare, and email retirement plans
-- **HTMX-Powered**: Dynamic calculations without page reloads
-- **Fully Accessible**: ARIA support, keyboard navigation, screen reader friendly
-- **Production Ready**: Security headers, caching, error handling
+-   **Multi-Phase Planning**: Calculate across 4 retirement phases (accumulation, phased retirement, active retirement, late retirement)
+-   **User Authentication**: Secure registration and login
+-   **Scenario Management**: Save, load, compare, and email retirement plans
+-   **HTMX-Powered**: Dynamic calculations without page reloads
+-   **Fully Accessible**: ARIA support, keyboard navigation, screen reader friendly
+-   **Production Ready**: Security headers, caching, error handling
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.13+
-- Node.js 18+ (for Tailwind CSS)
+-   Python 3.13+
+-   Node.js 18+ (for Tailwind CSS)
 
 ### Installation
 
@@ -63,10 +63,10 @@ Visit: http://127.0.0.1:8000/
 
 ## Tech Stack
 
-- **Backend**: Django 5.1, django-htmx 1.21
-- **Frontend**: HTMX 2.0.4, Tailwind CSS v4, Alpine.js 3.x
-- **Database**: SQLite (dev), PostgreSQL (production)
-- **Deployment**: Railway with Gunicorn
+-   **Backend**: Django 5.1, django-htmx 1.21
+-   **Frontend**: HTMX 2.0.4, Tailwind CSS v4, Alpine.js 3.x
+-   **Database**: SQLite (dev), PostgreSQL (production)
+-   **Deployment**: Railway with Gunicorn
 
 ## Project Structure
 
@@ -96,14 +96,17 @@ python manage.py test
 ## Future Enhancements
 
 ### High Priority
-- [ ] User profile edit page
-- [ ] Form state persistence
-- [ ] Social Security tracking
+
+-   [ ] User profile edit page
+-   [ ] Form state persistence across phase tabs
+-   [ ] Social Security tracking
 
 ### Medium Priority
-- [ ] Export to PDF/Excel
-- [ ] Interactive charts
-- [ ] What-if modeling
+
+-   [x] Export to PDF - Professional reports with ReportLab
+-   [x] Interactive charts - Monte Carlo simulations with Plotly
+-   [ ] Export to Excel
+-   [ ] What-if modeling
 
 ## Contributing
 
