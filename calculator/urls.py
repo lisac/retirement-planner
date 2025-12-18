@@ -23,6 +23,10 @@ urlpatterns = [
     # Scenario save HTMX endpoint
     path('scenarios/save/', htmx_views.save_scenario, name='save_scenario'),
 
+    # Monte Carlo simulation HTMX endpoints
+    path('monte-carlo/accumulation/', htmx_views.monte_carlo_accumulation, name='monte_carlo_accumulation'),
+    path('monte-carlo/withdrawal/', htmx_views.monte_carlo_withdrawal, name='monte_carlo_withdrawal'),
+
     # Scenario CRUD endpoints (RESTful)
     path('scenarios/', views.ScenarioListView.as_view(), name='scenario_list'),
     path('scenarios/new/', views.ScenarioCreateView.as_view(), name='scenario_create'),

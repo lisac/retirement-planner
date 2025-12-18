@@ -55,7 +55,7 @@ class AccumulationPhaseForm(BaseCalculatorForm):
 
     retirement_start_age = forms.IntegerField(
         label='Planned Retirement Start Age',
-        min_value=50,
+        min_value=40,
         max_value=100,
         widget=forms.NumberInput(attrs={'placeholder': 'e.g., 60'})
     )
@@ -107,6 +107,18 @@ class AccumulationPhaseForm(BaseCalculatorForm):
         required=False,
         help_text='Assumes contributions increase with salary',
         widget=forms.NumberInput(attrs={'placeholder': 'e.g., 3.0', 'step': '0.01'})
+    )
+
+    return_volatility = forms.DecimalField(
+        label='Return Volatility Range (±%)',
+        max_digits=5,
+        decimal_places=2,
+        min_value=0,
+        max_value=50,
+        required=False,
+        initial=10.0,
+        help_text='Range of returns above/below expected (Conservative: 5%, Moderate: 10%, Aggressive: 15-20%)',
+        widget=forms.NumberInput(attrs={'placeholder': 'e.g., 10.0', 'step': '0.1'})
     )
 
     def clean(self):

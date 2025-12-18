@@ -31,18 +31,20 @@ def run_accumulation_monte_carlo(
     years: int,
     expected_return: float,  # Annual return as percentage (e.g., 7.0 for 7%)
     variance: float,  # Annual standard deviation as percentage (e.g., 2.0 for 2%)
-    runs: int = 10000
+    runs: int = 10000,
+    annual_contribution_increase: float = 0.0  # Annual percentage increase in contributions
 ) -> MonteCarloResults:
     """
     Run Monte Carlo simulation for accumulation phase.
 
     Args:
         current_savings: Starting balance
-        monthly_contribution: Amount added each month
+        monthly_contribution: Amount added each month (including employer match)
         years: Number of years to simulate
         expected_return: Expected annual return (%)
         variance: Annual volatility/standard deviation (%)
         runs: Number of simulation runs
+        annual_contribution_increase: Annual % increase in contributions (for salary growth)
 
     Returns:
         MonteCarloResults with statistical outcomes
@@ -52,6 +54,7 @@ def run_accumulation_monte_carlo(
     # Convert percentages to decimals
     annual_rate = expected_return / 100
     annual_std = variance / 100
+    contribution_growth_rate = annual_contribution_increase / 100
 
     # Convert to monthly (assuming geometric Brownian motion)
     monthly_rate = annual_rate / 12
@@ -61,13 +64,18 @@ def run_accumulation_monte_carlo(
 
     for _ in range(runs):
         balance = current_savings
+        current_monthly_contribution = monthly_contribution
 
         for month in range(months):
             # Generate random monthly return from normal distribution
             random_return = np.random.normal(monthly_rate, monthly_std)
 
             # Apply return and add contribution
-            balance = balance * (1 + random_return) + monthly_contribution
+            balance = balance * (1 + random_return) + current_monthly_contribution
+
+            # Increase contribution annually
+            if (month + 1) % 12 == 0 and contribution_growth_rate > 0:
+                current_monthly_contribution *= (1 + contribution_growth_rate)
 
         results.append(balance)
 

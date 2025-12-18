@@ -1,0 +1,103 @@
+{% load calculator_tags %}
+
+<!-- Monte Carlo Analysis Results for Withdrawal Phase -->
+<div class="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-purple-900 mb-4">Monte Carlo Analysis (10,000 simulations)</h3>
+
+    <p class="text-sm text-gray-600 mb-4">
+        This probabilistic analysis shows the likelihood your portfolio will last through retirement.
+    </p>
+
+    <!-- Success Rate Highlight -->
+    <div class="mb-6 bg-white border-2 rounded-lg p-4 text-center
+        {% if results.success_rate >= 90 %}border-green-500{% elif results.success_rate >= 75 %}border-yellow-500{% else %}border-red-500{% endif %}">
+        <div class="text-sm text-gray-600 uppercase font-medium">Success Rate</div>
+        <div class="text-4xl font-bold mt-2
+            {% if results.success_rate >= 90 %}text-green-600{% elif results.success_rate >= 75 %}text-yellow-600{% else %}text-red-600{% endif %}">
+            {{ results.success_rate }}%
+        </div>
+        <div class="text-xs text-gray-500 mt-2">
+            Percentage of simulations where portfolio didn't run out of money
+        </div>
+    </div>
+
+    <!-- Percentile Distribution -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-purple-100">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Scenario
+                    </th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Ending Balance
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr class="bg-red-50">
+                    <td class="px-4 py-3 text-sm text-gray-900">
+                        Pessimistic (10th percentile)
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                        {{ results.percentile_10|currency }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 text-sm text-gray-900">
+                        Below Average (25th percentile)
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                        {{ results.percentile_25|currency }}
+                    </td>
+                </tr>
+                <tr class="bg-blue-50">
+                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                        Median (50th percentile)
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right font-bold text-blue-900">
+                        {{ results.percentile_50|currency }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 text-sm text-gray-900">
+                        Above Average (75th percentile)
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                        {{ results.percentile_75|currency }}
+                    </td>
+                </tr>
+                <tr class="bg-green-50">
+                    <td class="px-4 py-3 text-sm text-gray-900">
+                        Optimistic (90th percentile)
+                    </td>
+                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                        {{ results.percentile_90|currency }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="bg-white p-3 rounded border border-gray-200">
+            <div class="text-xs text-gray-500 uppercase">Mean</div>
+            <div class="text-lg font-semibold text-gray-900">{{ results.mean|currency }}</div>
+        </div>
+        <div class="bg-white p-3 rounded border border-gray-200">
+            <div class="text-xs text-gray-500 uppercase">Standard Deviation</div>
+            <div class="text-lg font-semibold text-gray-900">{{ results.std_deviation|currency }}</div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-xs text-gray-500">
+        <strong>How to interpret:</strong>
+        {% if results.success_rate >= 90 %}
+            Excellent! Your withdrawal strategy has a very high probability of success.
+        {% elif results.success_rate >= 75 %}
+            Good, but consider reducing withdrawals or increasing expected returns for more security.
+        {% else %}
+            Warning: Your portfolio has a significant risk of depletion. Consider reducing withdrawals or working longer.
+        {% endif %}
+    </div>
+</div>

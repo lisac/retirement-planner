@@ -10,6 +10,7 @@ appropriate templates (partials for HTMX, full pages for direct access).
 
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 import json
 from .forms import RetirementCalculatorForm, ScenarioNameForm
@@ -25,6 +26,10 @@ from .phase_calculator import (
     calculate_phased_retirement_phase,
     calculate_active_retirement_phase,
     calculate_late_retirement_phase
+)
+from .monte_carlo import (
+    run_accumulation_monte_carlo,
+    run_withdrawal_monte_carlo
 )
 from .models import Scenario
 
@@ -210,3 +215,96 @@ def save_scenario(request):
         # Return error message
         errors = '<br>'.join([f'{field}: {error}' for field, error in form.errors.items()])
         return HttpResponse(f'<div class="text-red-500">{errors}</div>')
+
+
+# ===== MONTE CARLO SIMULATIONS =====
+
+@require_POST
+def monte_carlo_accumulation(request):
+    """
+    HTMX endpoint: Run Monte Carlo simulation for accumulation phase.
+
+    Returns probabilistic projections showing range of possible outcomes.
+    """
+    try:
+        # Extract and validate parameters
+        current_savings = float(request.POST.get('current_savings', 0))
+        monthly_contribution = float(request.POST.get('monthly_contribution', 0))
+        employer_match_rate = float(request.POST.get('employer_match_rate', 0))
+        annual_salary_increase = float(request.POST.get('annual_salary_increase', 0))
+
+        # Calculate years from ages (form uses current_age and retirement_start_age)
+        current_age = int(request.POST.get('current_age', 0))
+        retirement_start_age = int(request.POST.get('retirement_start_age', 0))
+        years_to_retirement = max(0, retirement_start_age - current_age)
+
+        expected_return = float(request.POST.get('expected_return', 0))
+        # Use user-specified volatility, default to 10% (moderate)
+        variance = float(request.POST.get('return_volatility', 10.0))
+
+        # Apply employer match to monthly contribution for simulation
+        # This gives us the total monthly inflow
+        employer_match = monthly_contribution * (employer_match_rate / 100)
+        total_monthly_contribution = monthly_contribution + employer_match
+
+        # Run Monte Carlo simulation
+        results = run_accumulation_monte_carlo(
+            current_savings=current_savings,
+            monthly_contribution=total_monthly_contribution,
+            years=years_to_retirement,
+            expected_return=expected_return,
+            variance=variance,
+            runs=10000,
+            annual_contribution_increase=annual_salary_increase
+        )
+
+        # Return results partial
+        return render(request, 'calculator/partials/monte_carlo_accumulation.html', {
+            'results': results
+        })
+
+    except (ValueError, TypeError, KeyError) as e:
+        return HttpResponse(
+            '<div class="text-red-500">Invalid input data. Please check your values.</div>',
+            status=400
+        )
+
+
+@require_POST
+def monte_carlo_withdrawal(request):
+    """
+    HTMX endpoint: Run Monte Carlo simulation for withdrawal phase.
+
+    Returns success rate and range of ending portfolio values.
+    """
+    try:
+        # Extract and validate parameters
+        starting_portfolio = float(request.POST.get('starting_portfolio', 0))
+        annual_withdrawal = float(request.POST.get('annual_withdrawal', 0))
+        years = int(request.POST.get('years', 0))
+        expected_return = float(request.POST.get('expected_return', 0))
+        # Use user-specified volatility, default to 10% (moderate)
+        variance = float(request.POST.get('return_volatility', 10.0))
+        inflation_rate = float(request.POST.get('inflation_rate', 3.0))
+
+        # Run Monte Carlo simulation
+        results = run_withdrawal_monte_carlo(
+            starting_portfolio=starting_portfolio,
+            annual_withdrawal=annual_withdrawal,
+            years=years,
+            expected_return=expected_return,
+            variance=variance,
+            inflation_rate=inflation_rate,
+            runs=10000
+        )
+
+        # Return results partial
+        return render(request, 'calculator/partials/monte_carlo_withdrawal.html', {
+            'results': results
+        })
+
+    except (ValueError, TypeError, KeyError) as e:
+        return HttpResponse(
+            '<div class="text-red-500">Invalid input data. Please check your values.</div>',
+            status=400
+        )
