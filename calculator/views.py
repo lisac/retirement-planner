@@ -185,7 +185,6 @@ def compare_scenarios(request):
     POST: Calculate and display comparison results
     """
     from .phase_calculator import calculate_accumulation_phase
-    from decimal import Decimal
 
     scenarios = Scenario.objects.filter(user=request.user)
     comparison_data = None
