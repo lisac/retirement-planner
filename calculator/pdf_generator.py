@@ -427,15 +427,17 @@ def _generate_withdrawal_monte_carlo_chart(phase_data, phase_name="Retirement", 
         return None
 
 
-def generate_retirement_pdf(scenario):
+def generate_retirement_pdf(scenario, phase_results):
     """
     Generate a comprehensive PDF report for a retirement scenario.
 
-    Automatically includes Monte Carlo simulation charts if the scenario
-    has sufficient phase data.
+    This function displays pre-calculated results and does NOT perform calculations.
+    The view is responsible for calculating all phases before calling this function.
 
     Args:
         scenario: Scenario model instance with all phase data
+        phase_results: Dictionary of pre-calculated phase results
+                      {'phase1': AccumulationResults, 'phase2': ..., etc}
 
     Returns:
         BytesIO buffer containing the PDF
@@ -494,97 +496,8 @@ def generate_retirement_pdf(scenario):
     elements.append(Paragraph("Comprehensive Retirement Plan Analysis", styles['Heading3']))
     elements.append(Spacer(1, 0.5*inch))
 
-    # Calculate all phases to get results
-    phase_results = {}
+    # Use pre-calculated results passed from the view
     scenario_data = scenario.data
-
-    # Phase 1: Accumulation
-    # Handle both nested (phase1: {...}) and flat data structures
-    phase1_data = scenario_data.get('phase1', scenario_data)
-    if 'current_age' in phase1_data and 'retirement_start_age' in phase1_data:
-        try:
-            # The phase calculator expects a dictionary, not individual arguments
-            phase_results['phase1'] = calculate_accumulation_phase(phase1_data)
-        except (KeyError, ValueError, TypeError) as e:
-            # Log error for debugging but continue
-            import sys
-            print(f"Error calculating Phase 1: {e}", file=sys.stderr)
-            pass
-
-    # Phase 2: Phased Retirement - Calculate early for executive summary
-    phase2_data = scenario_data.get('phase2', scenario_data)
-    if 'phase_start_age' in phase2_data:
-        try:
-            # Use Phase 1 ending portfolio as Phase 2 starting portfolio
-            phase2_starting = phase2_data.get('starting_portfolio', 0)
-            if 'phase1' in phase_results:
-                phase2_starting = phase_results['phase1'].future_value
-
-            phase2_calc_data = {
-                'phase_start_age': int(phase2_data['phase_start_age']),
-                'full_retirement_age': int(phase2_data['full_retirement_age']),
-                'starting_portfolio': phase2_starting,
-                'monthly_contribution': phase2_data.get('monthly_contribution', 0),
-                'annual_withdrawal': phase2_data.get('annual_withdrawal', 0),
-                'part_time_income': phase2_data.get('part_time_income', 0),
-                'expected_return': phase2_data.get('expected_return', 7),
-            }
-            phase_results['phase2'] = calculate_phased_retirement_phase(phase2_calc_data)
-        except (KeyError, ValueError, TypeError) as e:
-            import sys
-            print(f"Error calculating Phase 2: {e}", file=sys.stderr)
-
-    # Phase 3: Active Retirement - Calculate early for executive summary
-    phase3_data = scenario_data.get('phase3', scenario_data)
-    if 'active_retirement_start_age' in phase3_data:
-        try:
-            # Use Phase 2 ending portfolio as Phase 3 starting portfolio (or Phase 1 if Phase 2 skipped)
-            phase3_starting = phase3_data.get('starting_portfolio', 0)
-            if 'phase2' in phase_results:
-                phase3_starting = phase_results['phase2'].ending_portfolio
-            elif 'phase1' in phase_results:
-                phase3_starting = phase_results['phase1'].future_value
-
-            phase3_calc_data = {
-                'active_retirement_start_age': int(phase3_data['active_retirement_start_age']),
-                'active_retirement_end_age': int(phase3_data['active_retirement_end_age']),
-                'starting_portfolio': phase3_starting,
-                'annual_expenses': phase3_data.get('annual_expenses', 0),
-                'annual_healthcare_costs': phase3_data.get('annual_healthcare_costs', 0),
-                'expected_return': phase3_data.get('expected_return', 7),
-                'inflation_rate': phase3_data.get('inflation_rate', 3),
-            }
-            phase_results['phase3'] = calculate_active_retirement_phase(phase3_calc_data)
-        except (KeyError, ValueError, TypeError) as e:
-            import sys
-            print(f"Error calculating Phase 3: {e}", file=sys.stderr)
-
-    # Phase 4: Late Retirement - Calculate early for executive summary
-    phase4_data = scenario_data.get('phase4', scenario_data)
-    if 'late_retirement_start_age' in phase4_data:
-        try:
-            # Use Phase 3 ending portfolio as Phase 4 starting portfolio (or earlier phase if Phase 3 skipped)
-            phase4_starting = phase4_data.get('starting_portfolio', 0)
-            if 'phase3' in phase_results:
-                phase4_starting = phase_results['phase3'].ending_portfolio
-            elif 'phase2' in phase_results:
-                phase4_starting = phase_results['phase2'].ending_portfolio
-            elif 'phase1' in phase_results:
-                phase4_starting = phase_results['phase1'].future_value
-
-            phase4_calc_data = {
-                'late_retirement_start_age': int(phase4_data['late_retirement_start_age']),
-                'life_expectancy': int(phase4_data['life_expectancy']),
-                'starting_portfolio': phase4_starting,
-                'annual_basic_expenses': phase4_data.get('annual_basic_expenses', 0),
-                'annual_healthcare_costs': phase4_data.get('annual_healthcare_costs', 0),
-                'expected_return': phase4_data.get('expected_return', 7),
-                'inflation_rate': phase4_data.get('inflation_rate', 3),
-            }
-            phase_results['phase4'] = calculate_late_retirement_phase(phase4_calc_data)
-        except (KeyError, ValueError, TypeError) as e:
-            import sys
-            print(f"Error calculating Phase 4: {e}", file=sys.stderr)
 
     # Add generated date in local time
     local_time = timezone.localtime(timezone.now())

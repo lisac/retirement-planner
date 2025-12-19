@@ -361,12 +361,68 @@ def generate_pdf_report(request, scenario_id):
         scenario_id: ID of the scenario to generate PDF for
     """
     from .pdf_generator import generate_retirement_pdf
+    from .phase_calculator import (
+        calculate_accumulation_phase,
+        calculate_phased_retirement_phase,
+        calculate_active_retirement_phase,
+        calculate_late_retirement_phase
+    )
 
     # Get scenario and ensure user owns it
     scenario = get_object_or_404(Scenario, id=scenario_id, user=request.user)
 
-    # Generate PDF (Monte Carlo charts included automatically)
-    pdf_buffer = generate_retirement_pdf(scenario)
+    # Calculate all phases from saved data (so PDF matches what user saw)
+    phase_results = {}
+    scenario_data = scenario.data
+
+    # Phase 1: Accumulation
+    if 'current_age' in scenario_data:
+        try:
+            phase_results['phase1'] = calculate_accumulation_phase(scenario_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Phase 2: Phased Retirement (optional)
+    if 'phase_start_age' in scenario_data:
+        try:
+            # Use Phase 1 ending as Phase 2 starting
+            phase2_data = scenario_data.copy()
+            if 'phase1' in phase_results:
+                phase2_data['starting_portfolio'] = phase_results['phase1'].future_value
+            phase_results['phase2'] = calculate_phased_retirement_phase(phase2_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Phase 3: Active Retirement
+    if 'active_retirement_start_age' in scenario_data:
+        try:
+            # Cascade starting portfolio
+            phase3_data = scenario_data.copy()
+            if 'phase2' in phase_results:
+                phase3_data['starting_portfolio'] = phase_results['phase2'].ending_portfolio
+            elif 'phase1' in phase_results:
+                phase3_data['starting_portfolio'] = phase_results['phase1'].future_value
+            phase_results['phase3'] = calculate_active_retirement_phase(phase3_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Phase 4: Late Retirement
+    if 'late_retirement_start_age' in scenario_data:
+        try:
+            # Cascade starting portfolio
+            phase4_data = scenario_data.copy()
+            if 'phase3' in phase_results:
+                phase4_data['starting_portfolio'] = phase_results['phase3'].ending_portfolio
+            elif 'phase2' in phase_results:
+                phase4_data['starting_portfolio'] = phase_results['phase2'].ending_portfolio
+            elif 'phase1' in phase_results:
+                phase4_data['starting_portfolio'] = phase_results['phase1'].future_value
+            phase_results['phase4'] = calculate_late_retirement_phase(phase4_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Generate PDF with calculated results
+    pdf_buffer = generate_retirement_pdf(scenario, phase_results)
 
     # Create response
     response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
@@ -383,31 +439,26 @@ def generate_pdf_from_current(request):
     """
     Generate PDF from current calculator state (not saved scenario).
 
-    Creates a temporary scenario from POST data and generates PDF.
+    Creates a temporary scenario from POST data, calculates results, and generates PDF.
     Monte Carlo charts are automatically included if phase data is available.
     """
     from .pdf_generator import generate_retirement_pdf
     from .models import Scenario
+    from .phase_calculator import (
+        calculate_accumulation_phase,
+        calculate_phased_retirement_phase,
+        calculate_active_retirement_phase,
+        calculate_late_retirement_phase
+    )
 
     if request.method != 'POST':
         return HttpResponse("Method not allowed", status=405)
 
-    # Create temporary scenario from POST data
-    # Gather all phase data from the request
-    scenario_data = {}
-
-    # Phase 1 data
-    if request.POST.get('current_age'):
-        scenario_data['phase1'] = {
-            'current_age': request.POST.get('current_age'),
-            'retirement_start_age': request.POST.get('retirement_start_age'),
-            'current_savings': request.POST.get('current_savings', 0),
-            'monthly_contribution': request.POST.get('monthly_contribution', 0),
-            'employer_match_rate': request.POST.get('employer_match_rate', 0),
-            'expected_return': request.POST.get('expected_return', 7),
-            'annual_salary_increase': request.POST.get('annual_salary_increase', 0),
-            'return_volatility': request.POST.get('return_volatility', 10),  # For Monte Carlo
-        }
+    # Gather all form data from POST
+    scenario_data = dict(request.POST.items())
+    # Remove non-data fields
+    scenario_data.pop('csrfmiddlewaretoken', None)
+    scenario_data.pop('scenario_name', None)
 
     # Create temporary scenario (not saved to database)
     temp_scenario = Scenario(
@@ -416,8 +467,54 @@ def generate_pdf_from_current(request):
         data=scenario_data
     )
 
-    # Generate PDF (Monte Carlo charts included automatically)
-    pdf_buffer = generate_retirement_pdf(temp_scenario)
+    # Calculate all phases from the data (same logic as generate_pdf_report)
+    phase_results = {}
+
+    # Phase 1: Accumulation
+    if 'current_age' in scenario_data:
+        try:
+            phase_results['phase1'] = calculate_accumulation_phase(scenario_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Phase 2: Phased Retirement (optional)
+    if 'phase_start_age' in scenario_data:
+        try:
+            phase2_data = scenario_data.copy()
+            if 'phase1' in phase_results:
+                phase2_data['starting_portfolio'] = phase_results['phase1'].future_value
+            phase_results['phase2'] = calculate_phased_retirement_phase(phase2_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Phase 3: Active Retirement
+    if 'active_retirement_start_age' in scenario_data:
+        try:
+            phase3_data = scenario_data.copy()
+            if 'phase2' in phase_results:
+                phase3_data['starting_portfolio'] = phase_results['phase2'].ending_portfolio
+            elif 'phase1' in phase_results:
+                phase3_data['starting_portfolio'] = phase_results['phase1'].future_value
+            phase_results['phase3'] = calculate_active_retirement_phase(phase3_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Phase 4: Late Retirement
+    if 'late_retirement_start_age' in scenario_data:
+        try:
+            phase4_data = scenario_data.copy()
+            if 'phase3' in phase_results:
+                phase4_data['starting_portfolio'] = phase_results['phase3'].ending_portfolio
+            elif 'phase2' in phase_results:
+                phase4_data['starting_portfolio'] = phase_results['phase2'].ending_portfolio
+            elif 'phase1' in phase_results:
+                phase4_data['starting_portfolio'] = phase_results['phase1'].future_value
+            phase_results['phase4'] = calculate_late_retirement_phase(phase4_data)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    # Generate PDF with calculated results
+    pdf_buffer = generate_retirement_pdf(temp_scenario, phase_results)
 
     # Create response
     response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
