@@ -140,21 +140,20 @@ class PDFReportGenerationTests(TestCase):
             'current_age': 30,
             'retirement_start_age': 60,
             'current_savings': 50000,
-            'include_monte_carlo': False,
         })
 
         # Should return PDF or success response
         self.assertIn(response.status_code, [200, 302])
 
     def test_pdf_with_monte_carlo_checkbox_enabled(self):
-        """Test PDF generation with Monte Carlo charts included."""
+        """Test PDF generation automatically includes Monte Carlo charts."""
         self.client.login(username='testuser', password='testpass123')
         url = reverse('calculator:generate_pdf_report', kwargs={'scenario_id': self.scenario.id})
-        response = self.client.get(url, {'include_charts': 'true'})
+        response = self.client.get(url)
 
         # Should return PDF
         self.assertEqual(response.status_code, 200)
-        # PDF with charts should be larger than without
+        # PDF with charts should be of reasonable size
         self.assertGreater(len(response.content), 5000)  # Reasonable minimum size
 
     def test_pdf_user_can_only_access_own_scenarios(self):

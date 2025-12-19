@@ -294,22 +294,18 @@ def generate_pdf_report(request, scenario_id):
     """
     Generate and download a PDF report for a saved scenario.
 
+    Monte Carlo charts are automatically included if the scenario has phase data.
+
     Args:
         scenario_id: ID of the scenario to generate PDF for
-
-    Query params:
-        include_charts: 'true' to include Monte Carlo charts (optional)
     """
     from .pdf_generator import generate_retirement_pdf
 
     # Get scenario and ensure user owns it
     scenario = get_object_or_404(Scenario, id=scenario_id, user=request.user)
 
-    # Check if charts should be included
-    include_charts = request.GET.get('include_charts', 'false').lower() == 'true'
-
-    # Generate PDF
-    pdf_buffer = generate_retirement_pdf(scenario, include_charts=include_charts)
+    # Generate PDF (Monte Carlo charts included automatically)
+    pdf_buffer = generate_retirement_pdf(scenario)
 
     # Create response
     response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
@@ -327,6 +323,7 @@ def generate_pdf_from_current(request):
     Generate PDF from current calculator state (not saved scenario).
 
     Creates a temporary scenario from POST data and generates PDF.
+    Monte Carlo charts are automatically included if phase data is available.
     """
     from .pdf_generator import generate_retirement_pdf
     from .models import Scenario
@@ -348,6 +345,7 @@ def generate_pdf_from_current(request):
             'employer_match_rate': request.POST.get('employer_match_rate', 0),
             'expected_return': request.POST.get('expected_return', 7),
             'annual_salary_increase': request.POST.get('annual_salary_increase', 0),
+            'return_volatility': request.POST.get('return_volatility', 10),  # For Monte Carlo
         }
 
     # Create temporary scenario (not saved to database)
@@ -357,11 +355,8 @@ def generate_pdf_from_current(request):
         data=scenario_data
     )
 
-    # Check if charts should be included
-    include_charts = request.POST.get('include_monte_carlo', 'false').lower() == 'true'
-
-    # Generate PDF
-    pdf_buffer = generate_retirement_pdf(temp_scenario, include_charts=include_charts)
+    # Generate PDF (Monte Carlo charts included automatically)
+    pdf_buffer = generate_retirement_pdf(temp_scenario)
 
     # Create response
     response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
