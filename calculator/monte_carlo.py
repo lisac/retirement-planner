@@ -62,6 +62,9 @@ def run_accumulation_monte_carlo(
     contribution_growth_rate = annual_contribution_increase / 100
 
     # Convert to monthly (assuming geometric Brownian motion)
+    # NOTE: Monte Carlo uses monthly compounding for realism, while deterministic
+    # calculations use annual compounding for conservatism. This means Monte Carlo
+    # results will typically be slightly higher than deterministic results.
     monthly_rate = annual_rate / 12
     monthly_std = annual_std / np.sqrt(12)
 

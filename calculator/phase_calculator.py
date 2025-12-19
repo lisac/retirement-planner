@@ -308,7 +308,7 @@ def calculate_active_retirement_phase(data: dict) -> ActiveRetirementResults:
     annual_return_rate = expected_return / Decimal('100')
     annual_inflation_rate = inflation_rate / Decimal('100')
 
-    # Simulate year by year
+    # Simulate year by year (conservative approach)
     portfolio = starting_portfolio
     total_withdrawals = Decimal('0')
     total_social_security = Decimal('0')
@@ -321,7 +321,7 @@ def calculate_active_retirement_phase(data: dict) -> ActiveRetirementResults:
     for year in range(phase_duration_years):
         current_age = start_age + year
 
-        # Investment growth
+        # Investment growth (annual compounding)
         annual_gain = portfolio * annual_return_rate
         total_investment_gains += annual_gain
         portfolio += annual_gain
@@ -399,7 +399,7 @@ def calculate_late_retirement_phase(data: dict) -> LateRetirementResults:
     annual_return_rate = expected_return / Decimal('100')
     annual_inflation_rate = inflation_rate / Decimal('100')
 
-    # Simulate year by year
+    # Simulate year by year (conservative approach)
     portfolio = starting_portfolio
     total_withdrawals = Decimal('0')
     total_ltc_costs = Decimal('0')
@@ -410,7 +410,7 @@ def calculate_late_retirement_phase(data: dict) -> LateRetirementResults:
     current_ltc = ltc_annual
 
     for year in range(phase_duration_years):
-        # Investment growth
+        # Investment growth (annual compounding)
         annual_gain = portfolio * annual_return_rate
         portfolio += annual_gain
 
@@ -434,7 +434,7 @@ def calculate_late_retirement_phase(data: dict) -> LateRetirementResults:
         portfolio -= withdrawal_needed
         total_withdrawals += withdrawal_needed
 
-        # Inflation adjustment
+        # Inflation adjustment for next year
         current_basic_expenses = current_basic_expenses * (1 + annual_inflation_rate)
         current_healthcare = current_healthcare * (1 + annual_inflation_rate)
         current_ltc = current_ltc * (1 + annual_inflation_rate)
