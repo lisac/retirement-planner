@@ -2,10 +2,16 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import RetirementCalculatorForm, CustomUserCreationForm
+from django.contrib import messages
+from .forms import (
+    RetirementCalculatorForm,
+    CustomUserCreationForm,
+    ProfileUpdateForm,
+    CustomPasswordChangeForm
+)
 from .calculator import calculate_retirement_savings
 from .phase_forms import (
     AccumulationPhaseForm,
@@ -283,6 +289,62 @@ def register(request):
         form = CustomUserCreationForm()
 
     return render(request, 'registration/register.html', {'form': form})
+
+
+@login_required
+def profile(request):
+    """
+    User profile edit page.
+
+    Handles two forms on one page:
+    - ProfileUpdateForm (email editing)
+    - CustomPasswordChangeForm (password change)
+
+    Forms distinguished by 'action' parameter.
+    """
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_profile':
+            # Handle email update
+            profile_form = ProfileUpdateForm(
+                request.POST,
+                instance=request.user,
+                user=request.user
+            )
+            password_form = CustomPasswordChangeForm(user=request.user)
+
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('calculator:profile')
+
+        elif action == 'change_password':
+            # Handle password change
+            profile_form = ProfileUpdateForm(instance=request.user, user=request.user)
+            password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+
+            if password_form.is_valid():
+                user = password_form.save()
+                # Keep user logged in after password change
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Password changed successfully!')
+                return redirect('calculator:profile')
+
+        else:
+            # No action specified, show both forms
+            profile_form = ProfileUpdateForm(instance=request.user, user=request.user)
+            password_form = CustomPasswordChangeForm(user=request.user)
+
+    else:
+        # GET request - show both forms
+        profile_form = ProfileUpdateForm(instance=request.user, user=request.user)
+        password_form = CustomPasswordChangeForm(user=request.user)
+
+    return render(request, 'calculator/profile.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
 
 
 # =============================================================================

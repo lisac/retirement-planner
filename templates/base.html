@@ -143,6 +143,9 @@
                         <span class="block text-gray-600 px-3 py-2 text-base">
                             {{ user.username }}
                         </span>
+                        <a href="{% url 'calculator:profile' %}" class="block text-gray-700 hover:bg-blue-50 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium">
+                            Profile
+                        </a>
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="block w-full text-left text-gray-700 hover:bg-red-50 hover:text-red-600 px-3 py-2 rounded-md text-base font-medium">

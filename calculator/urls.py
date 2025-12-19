@@ -11,6 +11,10 @@ urlpatterns = [
     path('multi-phase/<int:scenario_id>/', views.multi_phase_calculator, name='load_scenario'),
     path('about/', views.about, name='about'),
 
+    # Authentication
+    path('register/', views.register, name='register'),
+    path('profile/', views.profile, name='profile'),
+
     # Original simple calculator HTMX endpoint (backwards compatibility)
     path('calculate/', htmx_views.calculate_htmx, name='calculate_htmx'),
 
