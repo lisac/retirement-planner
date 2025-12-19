@@ -379,7 +379,22 @@ def monte_carlo_withdrawal(request):
     try:
         # Extract and validate parameters
         starting_portfolio = float(request.POST.get('starting_portfolio', 0))
-        annual_withdrawal = float(request.POST.get('annual_withdrawal', 0))
+
+        # Calculate annual withdrawal from different possible field combinations
+        annual_withdrawal = 0
+        if request.POST.get('annual_withdrawal'):
+            # Simple withdrawal form (Phase 2, simple calculator)
+            annual_withdrawal = float(request.POST.get('annual_withdrawal', 0))
+        else:
+            # Phase 3/4: Sum of expenses + healthcare (+ LTC if present)
+            annual_expenses = float(request.POST.get('annual_expenses', 0))
+            annual_healthcare = float(request.POST.get('annual_healthcare_costs', 0))
+            annual_basic_expenses = float(request.POST.get('annual_basic_expenses', 0))
+            long_term_care = float(request.POST.get('long_term_care_annual', 0))
+
+            # Phase 3 uses annual_expenses + annual_healthcare_costs
+            # Phase 4 uses annual_basic_expenses + annual_healthcare_costs + long_term_care_annual
+            annual_withdrawal = annual_expenses + annual_healthcare + annual_basic_expenses + long_term_care
 
         # Calculate years from age fields (different forms have different field names)
         years = 0
