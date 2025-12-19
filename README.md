@@ -66,6 +66,7 @@ Visit: http://127.0.0.1:8000/
 This project uses separate settings files for different environments:
 
 -   **Development**: `retirement_planner/settings/development.py`
+
     -   Includes Django Tailwind for CSS development
     -   Debug Toolbar enabled
     -   Browser auto-reload on file changes
@@ -80,6 +81,7 @@ This project uses separate settings files for different environments:
     -   Used automatically in production (via wsgi.py)
 
 **To explicitly use a specific settings file:**
+
 ```bash
 # Development
 python manage.py runserver --settings=retirement_planner.settings.development
@@ -125,15 +127,16 @@ python manage.py test
 ### High Priority
 
 -   [ ] User profile edit page
--   [ ] Form state persistence across phase tabs
+-   [x] Form state persistence across phase tabs
 -   [ ] Social Security tracking
 
 ### Medium Priority
 
 -   [x] Export to PDF - Professional reports with ReportLab
 -   [x] Interactive charts - Monte Carlo simulations with Plotly
--   [ ] Export to Excel
 -   [ ] What-if modeling
+-   [ ] Export to Excel
+-   [ ] Long Term Care Insurance inclusion
 
 ## Contributing
 
