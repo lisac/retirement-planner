@@ -194,9 +194,10 @@ def calculate_accumulation_phase(data: dict) -> AccumulationResults:
         total_personal_contributions += current_contribution
         total_employer_contributions += current_employer_match
 
-        # Future value of this contribution
-        months_remaining = months - month
-        contribution_fv = (current_contribution + current_employer_match) * ((1 + monthly_rate) ** months_remaining)
+        # Future value of this contribution (compounded from month it was made to retirement)
+        # Number of months this specific contribution will compound
+        months_to_compound = months - month - 1  # -1 because contribution at end of month
+        contribution_fv = (current_contribution + current_employer_match) * ((1 + monthly_rate) ** months_to_compound)
         fv_contributions += contribution_fv
 
         # Increase contribution annually based on salary increases
