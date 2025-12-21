@@ -19,7 +19,7 @@ A Django-based multi-phase retirement calculator with user authentication, scena
 
 -   **Multi-Phase Planning**: Calculate across 4 retirement phases (accumulation, phased retirement, active retirement, late retirement)
 -   **User Authentication**: Secure registration and login
--   **Scenario Management**: Save, load, compare, and email retirement plans
+-   **Scenario Management**: Save, load, and compare retirement plans
 -   **HTMX-Powered**: Dynamic calculations without page reloads
 -   **Fully Accessible**: ARIA support, keyboard navigation, screen reader friendly
 -   **Production Ready**: Security headers, caching, error handling
@@ -126,16 +126,17 @@ python manage.py test
 
 ### High Priority
 
--   [ ] User profile edit page
+-   [x] User profile edit page
 -   [x] Form state persistence across phase tabs
--   [ ] Social Security tracking
 
 ### Medium Priority
 
--   [x] Export to PDF - Professional reports with ReportLab
 -   [x] Interactive charts - Monte Carlo simulations with Plotly
 -   [ ] What-if modeling
+-   [ ] Send to email
 -   [ ] Export to Excel
+-   [ ] Export to PDF - Professional reports with ReportLab
+-   [ ] Social Security tracking
 -   [ ] Long Term Care Insurance inclusion
 
 ## Contributing
