@@ -190,11 +190,20 @@ def save_scenario(request):
     form = ScenarioNameForm(request.POST)
 
     if form.is_valid():
-        # Create scenario with name from form
-        scenario = form.save(commit=False)
+        scenario_name = form.cleaned_data['name']
 
-        # Set the user to the logged-in user
-        scenario.user = request.user
+        # Check if a scenario with this name already exists for this user
+        existing_scenario = Scenario.objects.filter(user=request.user, name=scenario_name).first()
+
+        if existing_scenario:
+            # Update existing scenario instead of creating a new one
+            scenario = existing_scenario
+            action = "updated"
+        else:
+            # Create new scenario
+            scenario = form.save(commit=False)
+            scenario.user = request.user
+            action = "saved"
 
         # Capture all form data as JSON (excluding csrf_token and scenario_name)
         data = {}
@@ -208,7 +217,7 @@ def save_scenario(request):
         # Return success message
         return HttpResponse(f'''
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                ✓ Scenario "{scenario.name}" saved successfully!
+                ✓ Scenario "{scenario.name}" {action} successfully!
                 <a href="/calculator/scenarios/" class="underline ml-2">View all scenarios</a>
             </div>
         ''')
