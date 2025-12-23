@@ -197,6 +197,7 @@ SECURE_CONTENT_SECURITY_POLICY = {
     'default-src': ["'self'"],
     'script-src': [
         "'self'",
+        'https://unpkg.com',  # HTMX
         'https://cdn.jsdelivr.net',  # Alpine.js
         'https://cdn.plot.ly',  # Plotly
         "'unsafe-inline'",  # Required for inline scripts (HTMX, Alpine.js attributes)
