@@ -44,12 +44,13 @@ SECURE_HSTS_PRELOAD = True
 # SECURE_SSL_REDIRECT = True  # Commented out - Railway uses proxy
 
 # Production email backend (must be configured via environment variables)
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-
-# Ensure critical email settings are configured in production
-if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
-    if not config('EMAIL_HOST', default=''):
-        print("⚠️  WARNING: EMAIL_HOST not configured. Email functionality will not work.")
+# Auto-fallback to console backend if SMTP not configured
+if config('EMAIL_HOST', default=''):
+    EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+    print("📧 Email: Using SMTP backend")
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("⚠️  WARNING: EMAIL_HOST not configured. Using console backend (emails printed to logs).")
 
 # Production-specific logging (less verbose, focus on errors)
 LOGGING['root']['level'] = 'WARNING'
