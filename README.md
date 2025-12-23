@@ -18,11 +18,14 @@ A Django-based multi-phase retirement calculator with user authentication, scena
 ## Features
 
 -   **Multi-Phase Planning**: Calculate across 4 retirement phases (accumulation, phased retirement, active retirement, late retirement)
--   **User Authentication**: Secure registration and login
--   **Scenario Management**: Save, load, and compare retirement plans
+-   **User Authentication**: Secure registration, login, and password reset with email fallback
+-   **Scenario Management**: Save, load, and compare retirement plans with form state persistence
+-   **Monte Carlo Simulations**: 10,000-iteration probabilistic analysis with interactive Plotly charts
 -   **HTMX-Powered**: Dynamic calculations without page reloads
+-   **Mobile-Responsive**: Adaptive font sizing and layouts from mobile to desktop
 -   **Fully Accessible**: ARIA support, keyboard navigation, screen reader friendly
--   **Production Ready**: Security headers, caching, error handling
+-   **Comprehensive Testing**: 65% test coverage with 59 tests (HTMX views, forms, integration)
+-   **Production Ready**: Security headers, email fallback, error handling
 
 ## Quick Start
 
@@ -118,26 +121,42 @@ templates/
 
 ## Testing
 
+Run the comprehensive test suite (59 tests, ~65% coverage):
+
 ```bash
 python manage.py test
 ```
 
+Test coverage includes:
+- HTMX views (19 tests)
+- Phase forms validation (27 tests)
+- Integration workflows (13 tests)
+- Monte Carlo simulations
+- PDF generation
+- User profiles
+
 ## Future Enhancements
 
-### High Priority
+### Recently Completed ✅
 
 -   [x] User profile edit page
 -   [x] Form state persistence across phase tabs
+-   [x] Interactive charts - Monte Carlo simulations with Plotly
+-   [x] Mobile-responsive design
+-   [x] Password reset with email fallback
+-   [x] Comprehensive test suite
+
+### High Priority
+
+-   [ ] What-if scenario modeling
+-   [ ] Email scenario reports
+-   [ ] Export to Excel
 
 ### Medium Priority
 
--   [x] Interactive charts - Monte Carlo simulations with Plotly
--   [ ] What-if modeling
--   [ ] Send to email
--   [ ] Export to Excel
--   [ ] Export to PDF - Professional reports with ReportLab
--   [ ] Social Security tracking
--   [ ] Long Term Care Insurance inclusion
+-   [ ] PDF export improvements (currently on hold - accuracy fixes needed)
+-   [ ] Social Security income tracking
+-   [ ] Long Term Care Insurance planning
 
 ## Contributing
 
