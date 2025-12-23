@@ -524,3 +524,58 @@ def generate_pdf_from_current(request):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     return response
+
+
+# =============================================================================
+# WHAT-IF SCENARIO ANALYSIS
+# =============================================================================
+
+@login_required
+def what_if_comparison(request, scenario_id):
+    """
+    Display what-if comparison interface for a saved scenario.
+
+    Shows side-by-side comparison:
+    - Left: Original scenario (locked, read-only)
+    - Right: Adjustable inputs with live calculations
+
+    Args:
+        scenario_id: ID of the base scenario to analyze
+
+    Returns:
+        Rendered template with base scenario and adjustable forms
+    """
+    # Get scenario and ensure user owns it
+    base_scenario = get_object_or_404(Scenario, id=scenario_id, user=request.user)
+
+    # Initialize forms with base scenario data
+    scenario_data = base_scenario.data
+
+    # Create forms pre-populated with base scenario data
+    accumulation_form = None
+    phased_retirement_form = None
+    active_retirement_form = None
+    late_retirement_form = None
+
+    # Check which phases exist in the scenario
+    if 'phase1' in scenario_data:
+        accumulation_form = AccumulationPhaseForm(initial=scenario_data['phase1'])
+
+    if 'phase2' in scenario_data:
+        phased_retirement_form = PhasedRetirementForm(initial=scenario_data['phase2'])
+
+    if 'phase3' in scenario_data:
+        active_retirement_form = ActiveRetirementForm(initial=scenario_data['phase3'])
+
+    if 'phase4' in scenario_data:
+        late_retirement_form = LateRetirementForm(initial=scenario_data['phase4'])
+
+    context = {
+        'base_scenario': base_scenario,
+        'accumulation_form': accumulation_form,
+        'phased_retirement_form': phased_retirement_form,
+        'active_retirement_form': active_retirement_form,
+        'late_retirement_form': late_retirement_form,
+    }
+
+    return render(request, 'calculator/what_if_comparison.html', context)

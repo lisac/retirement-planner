@@ -41,6 +41,10 @@ urlpatterns = [
     # Scenario comparison
     path('scenarios/compare/', views.compare_scenarios, name='scenario_compare'),
 
+    # What-if scenario analysis
+    path('scenarios/<int:scenario_id>/what-if/', views.what_if_comparison, name='what_if_comparison'),
+    path('what-if/calculate/', htmx_views.what_if_calculate, name='what_if_calculate'),
+
     # PDF report generation
     path('scenarios/<int:scenario_id>/pdf/', views.generate_pdf_report, name='generate_pdf_report'),
     path('pdf/current/', views.generate_pdf_from_current, name='generate_pdf_from_current'),

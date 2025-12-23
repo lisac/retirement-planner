@@ -469,3 +469,100 @@ def monte_carlo_withdrawal(request):
             '<div class="text-red-500">Invalid input data. Please check your values.</div>',
             status=400
         )
+
+# ===== WHAT-IF SCENARIO ANALYSIS =====
+
+@login_required
+def what_if_calculate(request):
+    """
+    HTMX endpoint for live what-if scenario calculations.
+
+    Compares adjusted inputs against base scenario and shows delta/difference.
+    Used by what-if comparison page for real-time updates as user adjusts values.
+
+    POST parameters:
+        base_scenario_id: ID of the base scenario
+        phase: Which phase to calculate ('phase1', 'phase2', etc.)
+        ...all phase-specific input fields...
+
+    Returns:
+        HTML partial with calculated results and delta comparison
+    """
+    from .models import Scenario
+    from .phase_calculator import (
+        calculate_accumulation_phase,
+        calculate_phased_retirement_phase,
+        calculate_active_retirement_phase,
+        calculate_late_retirement_phase
+    )
+
+    if request.method != 'POST':
+        return HttpResponse('Method not allowed', status=405)
+
+    # Get base scenario
+    base_scenario_id = request.POST.get('base_scenario_id')
+    if not base_scenario_id:
+        return HttpResponse('<div class="text-red-500">Error: No base scenario specified</div>', status=400)
+
+    try:
+        base_scenario = Scenario.objects.get(id=base_scenario_id, user=request.user)
+    except Scenario.DoesNotExist:
+        return HttpResponse('<div class="text-red-500">Error: Scenario not found</div>', status=404)
+
+    # Get which phase to calculate
+    phase = request.POST.get('phase', 'phase1')
+
+    # Map phase to calculation function and form
+    phase_calculators = {
+        'phase1': (calculate_accumulation_phase, AccumulationPhaseForm),
+        'phase2': (calculate_phased_retirement_phase, PhasedRetirementForm),
+        'phase3': (calculate_active_retirement_phase, ActiveRetirementForm),
+        'phase4': (calculate_late_retirement_phase, LateRetirementForm),
+    }
+
+    if phase not in phase_calculators:
+        return HttpResponse('<div class="text-red-500">Error: Invalid phase</div>', status=400)
+
+    calculator_func, form_class = phase_calculators[phase]
+
+    # Validate form data
+    form = form_class(request.POST)
+    if not form.is_valid():
+        errors = '<br>'.join([f'{field}: {", ".join(errs)}' for field, errs in form.errors.items()])
+        return HttpResponse(f'<div class="text-red-500">Validation errors:<br>{errors}</div>', status=400)
+
+    try:
+        # Calculate what-if results
+        what_if_results = calculator_func(form.cleaned_data)
+
+        # Calculate base scenario results for comparison
+        base_data = base_scenario.data.get(phase, {})
+        base_results = calculator_func(base_data) if base_data else None
+
+        # Calculate deltas if we have base results
+        deltas = {}
+        if base_results:
+            # Compare key metrics depending on phase
+            if phase == 'phase1':
+                deltas['future_value'] = what_if_results.future_value - base_results.future_value
+                deltas['total_contributions'] = what_if_results.total_contributions - base_results.total_contributions
+                deltas['total_gains'] = what_if_results.total_gains - base_results.total_gains
+            elif phase in ['phase2', 'phase3', 'phase4']:
+                deltas['ending_portfolio'] = what_if_results.ending_portfolio - base_results.ending_portfolio
+                deltas['total_withdrawals'] = what_if_results.total_withdrawals - base_results.total_withdrawals
+
+        # Render results partial with comparison
+        context = {
+            'what_if_results': what_if_results,
+            'base_results': base_results,
+            'deltas': deltas,
+            'phase': phase,
+        }
+
+        return render(request, 'calculator/partials/what_if_results.html', context)
+
+    except (ValueError, TypeError, KeyError) as e:
+        return HttpResponse(
+            f'<div class="text-red-500">Calculation error: {str(e)}</div>',
+            status=400
+        )
