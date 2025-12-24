@@ -564,7 +564,11 @@ def what_if_comparison(request, scenario_id):
     if 'phase1' in scenario_data:
         # New nested format
         if 'phase1' in scenario_data:
-            accumulation_form = AccumulationPhaseForm(initial=scenario_data['phase1'])
+            phase1_data = scenario_data['phase1'].copy()
+            # Handle old field name for backward compatibility
+            if 'retirement_age' in phase1_data and 'retirement_start_age' not in phase1_data:
+                phase1_data['retirement_start_age'] = phase1_data.pop('retirement_age')
+            accumulation_form = AccumulationPhaseForm(initial=phase1_data)
         if 'phase2' in scenario_data:
             phased_retirement_form = PhasedRetirementForm(initial=scenario_data['phase2'])
         if 'phase3' in scenario_data:
