@@ -502,12 +502,12 @@ def what_if_calculate(request):
     # Get base scenario
     base_scenario_id = request.POST.get('base_scenario_id')
     if not base_scenario_id:
-        return HttpResponse('<div class="text-red-500">Error: No base scenario specified</div>', status=400)
+        return HttpResponse('<div class="text-red-500 p-4 bg-red-50 border border-red-200 rounded">Error: No base scenario specified</div>')
 
     try:
         base_scenario = Scenario.objects.get(id=base_scenario_id, user=request.user)
     except Scenario.DoesNotExist:
-        return HttpResponse('<div class="text-red-500">Error: Scenario not found</div>', status=404)
+        return HttpResponse('<div class="text-red-500 p-4 bg-red-50 border border-red-200 rounded">Error: Scenario not found</div>')
 
     # Get which phase to calculate
     phase = request.POST.get('phase', 'phase1')
@@ -521,7 +521,7 @@ def what_if_calculate(request):
     }
 
     if phase not in phase_calculators:
-        return HttpResponse('<div class="text-red-500">Error: Invalid phase</div>', status=400)
+        return HttpResponse('<div class="text-red-500 p-4 bg-red-50 border border-red-200 rounded">Error: Invalid phase</div>')
 
     calculator_func, form_class = phase_calculators[phase]
 
@@ -529,14 +529,43 @@ def what_if_calculate(request):
     form = form_class(request.POST)
     if not form.is_valid():
         errors = '<br>'.join([f'{field}: {", ".join(errs)}' for field, errs in form.errors.items()])
-        return HttpResponse(f'<div class="text-red-500">Validation errors:<br>{errors}</div>', status=400)
+        return HttpResponse(f'<div class="text-red-500 p-4 bg-red-50 border border-red-200 rounded"><strong>Validation errors:</strong><br>{errors}</div>')
 
     try:
         # Calculate what-if results
         what_if_results = calculator_func(form.cleaned_data)
 
         # Calculate base scenario results for comparison
-        base_data = base_scenario.data.get(phase, {})
+        # Handle both nested (phase1, phase2) and flat data structures
+        scenario_data = base_scenario.data
+        base_data = {}
+
+        if phase in scenario_data:
+            # Nested format
+            base_data = scenario_data[phase]
+        else:
+            # Flat format - extract relevant fields for this phase
+            if phase == 'phase1':
+                phase1_fields = ['current_age', 'retirement_start_age', 'current_savings', 'monthly_contribution',
+                                'employer_match_rate', 'annual_salary_increase', 'stock_allocation',
+                                'expected_return', 'inflation_rate', 'return_volatility']
+                base_data = {k: scenario_data[k] for k in phase1_fields if k in scenario_data}
+            elif phase == 'phase2':
+                phase2_fields = ['starting_portfolio', 'phase_start_age', 'full_retirement_age',
+                                'part_time_income', 'monthly_contribution', 'annual_withdrawal', 'expected_return',
+                                'inflation_rate', 'stock_allocation', 'return_volatility']
+                base_data = {k: scenario_data[k] for k in phase2_fields if k in scenario_data}
+            elif phase == 'phase3':
+                phase3_fields = ['starting_portfolio', 'active_retirement_start_age', 'active_retirement_end_age',
+                                'annual_expenses', 'annual_healthcare_costs', 'expected_return', 'inflation_rate',
+                                'stock_allocation', 'return_volatility']
+                base_data = {k: scenario_data[k] for k in phase3_fields if k in scenario_data}
+            elif phase == 'phase4':
+                phase4_fields = ['starting_portfolio', 'late_retirement_start_age', 'life_expectancy',
+                                'annual_basic_expenses', 'annual_healthcare_costs', 'desired_legacy',
+                                'expected_return', 'inflation_rate']
+                base_data = {k: scenario_data[k] for k in phase4_fields if k in scenario_data}
+
         base_results = calculator_func(base_data) if base_data else None
 
         # Calculate deltas if we have base results
@@ -545,8 +574,11 @@ def what_if_calculate(request):
             # Compare key metrics depending on phase
             if phase == 'phase1':
                 deltas['future_value'] = what_if_results.future_value - base_results.future_value
-                deltas['total_contributions'] = what_if_results.total_contributions - base_results.total_contributions
-                deltas['total_gains'] = what_if_results.total_gains - base_results.total_gains
+                # For accumulation phase, combine personal and employer contributions
+                what_if_total = what_if_results.total_personal_contributions + what_if_results.total_employer_contributions
+                base_total = base_results.total_personal_contributions + base_results.total_employer_contributions
+                deltas['total_contributions'] = what_if_total - base_total
+                deltas['total_gains'] = what_if_results.investment_gains - base_results.investment_gains
             elif phase in ['phase2', 'phase3', 'phase4']:
                 deltas['ending_portfolio'] = what_if_results.ending_portfolio - base_results.ending_portfolio
                 deltas['total_withdrawals'] = what_if_results.total_withdrawals - base_results.total_withdrawals
@@ -562,7 +594,9 @@ def what_if_calculate(request):
         return render(request, 'calculator/partials/what_if_results.html', context)
 
     except (ValueError, TypeError, KeyError) as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"ERROR in what_if_calculate: {error_trace}")
         return HttpResponse(
-            f'<div class="text-red-500">Calculation error: {str(e)}</div>',
-            status=400
+            f'<div class="text-red-500 p-4 bg-red-50 border border-red-200 rounded"><strong>Calculation error:</strong> {str(e)}</div>'
         )

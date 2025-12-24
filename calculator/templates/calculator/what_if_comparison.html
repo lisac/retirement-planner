@@ -3,6 +3,20 @@
 
 {% block title %}What-If Analysis - {{ base_scenario.name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    /* Rotate chevron when details is open */
+    details[open] summary svg {
+        transform: rotate(180deg);
+    }
+
+    /* Smooth transition */
+    details summary svg {
+        transition: transform 0.2s ease;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
@@ -11,10 +25,13 @@
         <p class="text-gray-600">Base Scenario: <span class="font-semibold">{{ base_scenario.name }}</span></p>
     </div>
 
+    <!-- Results Section (appears first after calculation) -->
+    <div id="what-if-results" class="mb-6"></div>
+
     <!-- Side-by-side comparison layout -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- LEFT COLUMN: Base Scenario (Read-Only) -->
+        <!-- COLUMN 1: Base Scenario (Read-Only) -->
         <div class="bg-gray-50 rounded-lg p-6 border border-gray-300">
             <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,7 +53,7 @@
                         {% for field in accumulation_form %}
                             <div class="flex justify-between">
                                 <span class="text-gray-600">{{ field.label }}:</span>
-                                <span class="font-medium">{{ field.value|default:"N/A" }}</span>
+                                <span class="font-medium">{{ field.value|default:"N/A" }}{% if field.field.widget.attrs.unit %}{{ field.field.widget.attrs.unit }}{% endif %}</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -50,7 +67,7 @@
                         {% for field in phased_retirement_form %}
                             <div class="flex justify-between">
                                 <span class="text-gray-600">{{ field.label }}:</span>
-                                <span class="font-medium">{{ field.value|default:"N/A" }}</span>
+                                <span class="font-medium">{{ field.value|default:"N/A" }}{% if field.field.widget.attrs.unit %}{{ field.field.widget.attrs.unit }}{% endif %}</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -64,7 +81,7 @@
                         {% for field in active_retirement_form %}
                             <div class="flex justify-between">
                                 <span class="text-gray-600">{{ field.label }}:</span>
-                                <span class="font-medium">{{ field.value|default:"N/A" }}</span>
+                                <span class="font-medium">{{ field.value|default:"N/A" }}{% if field.field.widget.attrs.unit %}{{ field.field.widget.attrs.unit }}{% endif %}</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -78,7 +95,7 @@
                         {% for field in late_retirement_form %}
                             <div class="flex justify-between">
                                 <span class="text-gray-600">{{ field.label }}:</span>
-                                <span class="font-medium">{{ field.value|default:"N/A" }}</span>
+                                <span class="font-medium">{{ field.value|default:"N/A" }}{% if field.field.widget.attrs.unit %}{{ field.field.widget.attrs.unit }}{% endif %}</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -87,7 +104,7 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: What-If Adjustments (Editable) -->
+        <!-- COLUMN 2: What-If Adjustments (Editable) -->
         <div class="bg-blue-50 rounded-lg p-6 border border-blue-300">
             <h2 class="text-xl font-bold text-blue-900 mb-4 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,21 +117,25 @@
                 <p>Adjust values below to see how changes affect your retirement plan.</p>
             </div>
 
-            <!-- Editable forms with HTMX for live updates -->
+            <!-- Collapsible forms with HTMX for live updates -->
             {% if accumulation_form %}
-            <form id="what-if-form-phase1"
-                  hx-post="{% url 'calculator:what_if_calculate' %}"
-                  hx-target="#what-if-results"
-                  hx-swap="innerHTML"
-                  hx-trigger="change delay:500ms"
-                  class="space-y-4">
-                {% csrf_token %}
-                <input type="hidden" name="base_scenario_id" value="{{ base_scenario.id }}">
-                <input type="hidden" name="phase" value="phase1">
+            <details class="bg-white rounded-lg border border-blue-200 mb-3" open>
+                <summary class="cursor-pointer p-4 font-semibold text-gray-900 hover:bg-blue-50 rounded-lg flex items-center justify-between">
+                    <span>Phase 1: Accumulation</span>
+                    <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <form id="what-if-form-phase1"
+                      hx-post="{% url 'calculator:what_if_calculate' %}"
+                      hx-target="#what-if-results"
+                      hx-swap="innerHTML"
+                      class="p-4 pt-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="base_scenario_id" value="{{ base_scenario.id }}">
+                    <input type="hidden" name="phase" value="phase1">
 
-                <div class="bg-white rounded p-4">
-                    <h3 class="font-semibold text-gray-900 mb-3">Phase 1: Accumulation</h3>
-                    <div class="space-y-3">
+                    <div class="space-y-3 mb-4">
                         {% for field in accumulation_form %}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
@@ -125,20 +146,121 @@
                         </div>
                         {% endfor %}
                     </div>
-                </div>
 
-                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
-                    Calculate What-If
-                </button>
-            </form>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+                        Calculate What-If
+                    </button>
+                </form>
+            </details>
             {% endif %}
-        </div>
-    </div>
 
-    <!-- Results Section (populated via HTMX) -->
-    <div id="what-if-results" class="mt-8">
-        <div class="bg-gray-100 border border-gray-300 rounded-lg p-8 text-center text-gray-600">
-            <p>Adjust values above to see what-if comparison results.</p>
+            {% if phased_retirement_form %}
+            <details class="bg-white rounded-lg border border-blue-200 mb-3">
+                <summary class="cursor-pointer p-4 font-semibold text-gray-900 hover:bg-blue-50 rounded-lg flex items-center justify-between">
+                    <span>Phase 2: Phased Retirement</span>
+                    <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <form id="what-if-form-phase2"
+                      hx-post="{% url 'calculator:what_if_calculate' %}"
+                      hx-target="#what-if-results"
+                      hx-swap="innerHTML"
+                      class="p-4 pt-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="base_scenario_id" value="{{ base_scenario.id }}">
+                    <input type="hidden" name="phase" value="phase2">
+
+                    <div class="space-y-3 mb-4">
+                        {% for field in phased_retirement_form %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+                        Calculate What-If
+                    </button>
+                </form>
+            </details>
+            {% endif %}
+
+            {% if active_retirement_form %}
+            <details class="bg-white rounded-lg border border-blue-200 mb-3">
+                <summary class="cursor-pointer p-4 font-semibold text-gray-900 hover:bg-blue-50 rounded-lg flex items-center justify-between">
+                    <span>Phase 3: Active Retirement</span>
+                    <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <form id="what-if-form-phase3"
+                      hx-post="{% url 'calculator:what_if_calculate' %}"
+                      hx-target="#what-if-results"
+                      hx-swap="innerHTML"
+                      class="p-4 pt-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="base_scenario_id" value="{{ base_scenario.id }}">
+                    <input type="hidden" name="phase" value="phase3">
+
+                    <div class="space-y-3 mb-4">
+                        {% for field in active_retirement_form %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+                        Calculate What-If
+                    </button>
+                </form>
+            </details>
+            {% endif %}
+
+            {% if late_retirement_form %}
+            <details class="bg-white rounded-lg border border-blue-200 mb-3">
+                <summary class="cursor-pointer p-4 font-semibold text-gray-900 hover:bg-blue-50 rounded-lg flex items-center justify-between">
+                    <span>Phase 4: Late Retirement</span>
+                    <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <form id="what-if-form-phase4"
+                      hx-post="{% url 'calculator:what_if_calculate' %}"
+                      hx-target="#what-if-results"
+                      hx-swap="innerHTML"
+                      class="p-4 pt-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="base_scenario_id" value="{{ base_scenario.id }}">
+                    <input type="hidden" name="phase" value="phase4">
+
+                    <div class="space-y-3 mb-4">
+                        {% for field in late_retirement_form %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+                        Calculate What-If
+                    </button>
+                </form>
+            </details>
+            {% endif %}
         </div>
     </div>
 

@@ -557,18 +557,69 @@ def what_if_comparison(request, scenario_id):
     active_retirement_form = None
     late_retirement_form = None
 
-    # Check which phases exist in the scenario
+    # Handle both nested (phase1, phase2, etc.) and flat data structures
+    # Nested format: {'phase1': {...}, 'phase2': {...}}
+    # Flat format: {'current_age': 30, 'retirement_start_age': 60, ...}
+
     if 'phase1' in scenario_data:
-        accumulation_form = AccumulationPhaseForm(initial=scenario_data['phase1'])
+        # New nested format
+        if 'phase1' in scenario_data:
+            accumulation_form = AccumulationPhaseForm(initial=scenario_data['phase1'])
+        if 'phase2' in scenario_data:
+            phased_retirement_form = PhasedRetirementForm(initial=scenario_data['phase2'])
+        if 'phase3' in scenario_data:
+            active_retirement_form = ActiveRetirementForm(initial=scenario_data['phase3'])
+        if 'phase4' in scenario_data:
+            late_retirement_form = LateRetirementForm(initial=scenario_data['phase4'])
+    else:
+        # Old flat format - distribute fields to appropriate forms based on field names
+        # Phase 1 fields: current_age, retirement_start_age, current_savings, monthly_contribution, etc.
+        phase1_data = {}
+        phase2_data = {}
+        phase3_data = {}
+        phase4_data = {}
 
-    if 'phase2' in scenario_data:
-        phased_retirement_form = PhasedRetirementForm(initial=scenario_data['phase2'])
+        # Phase 1 (Accumulation) fields
+        phase1_fields = ['current_age', 'retirement_start_age', 'current_savings', 'monthly_contribution',
+                        'employer_match_rate', 'annual_salary_increase', 'stock_allocation',
+                        'expected_return', 'inflation_rate', 'return_volatility']
+        for field in phase1_fields:
+            if field in scenario_data:
+                phase1_data[field] = scenario_data[field]
 
-    if 'phase3' in scenario_data:
-        active_retirement_form = ActiveRetirementForm(initial=scenario_data['phase3'])
+        # Phase 2 (Phased Retirement) fields
+        phase2_fields = ['starting_portfolio', 'phase_start_age', 'full_retirement_age',
+                        'part_time_income', 'monthly_contribution', 'annual_withdrawal', 'expected_return',
+                        'inflation_rate', 'stock_allocation', 'return_volatility']
+        for field in phase2_fields:
+            if field in scenario_data:
+                phase2_data[field] = scenario_data[field]
 
-    if 'phase4' in scenario_data:
-        late_retirement_form = LateRetirementForm(initial=scenario_data['phase4'])
+        # Phase 3 (Active Retirement) fields
+        phase3_fields = ['starting_portfolio', 'active_retirement_start_age', 'active_retirement_end_age',
+                        'annual_expenses', 'annual_healthcare_costs', 'expected_return', 'inflation_rate',
+                        'stock_allocation', 'return_volatility']
+        for field in phase3_fields:
+            if field in scenario_data:
+                phase3_data[field] = scenario_data[field]
+
+        # Phase 4 (Late Retirement) fields
+        phase4_fields = ['starting_portfolio', 'late_retirement_start_age', 'life_expectancy',
+                        'annual_basic_expenses', 'annual_healthcare_costs', 'desired_legacy',
+                        'expected_return', 'inflation_rate']
+        for field in phase4_fields:
+            if field in scenario_data:
+                phase4_data[field] = scenario_data[field]
+
+        # Only create forms if we have data for them
+        if phase1_data:
+            accumulation_form = AccumulationPhaseForm(initial=phase1_data)
+        if phase2_data and 'phase_start_age' in phase2_data:
+            phased_retirement_form = PhasedRetirementForm(initial=phase2_data)
+        if phase3_data and 'active_retirement_start_age' in phase3_data:
+            active_retirement_form = ActiveRetirementForm(initial=phase3_data)
+        if phase4_data and 'late_retirement_start_age' in phase4_data:
+            late_retirement_form = LateRetirementForm(initial=phase4_data)
 
     context = {
         'base_scenario': base_scenario,

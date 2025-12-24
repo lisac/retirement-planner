@@ -6,7 +6,13 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Saved Scenarios</h1>
+       <!-- Hide JSON Object entry for a New Scenario for now.
         <a href="{% url 'calculator:scenario_create' %}"
+           class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+            + New Scenario
+        </a> 
+        -->
+         <a href="{% url 'calculator:multi_phase_calculator' %}"
            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
             + New Scenario
         </a>

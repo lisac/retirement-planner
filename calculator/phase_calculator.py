@@ -233,8 +233,8 @@ def calculate_phased_retirement_phase(data: dict) -> PhasedRetirementResults:
     - Portfolio growth during transition period
     """
     starting_portfolio = Decimal(str(data['starting_portfolio']))
-    phase_start_age = data['phase_start_age']
-    full_retirement_age = data['full_retirement_age']
+    phase_start_age = int(data['phase_start_age'])
+    full_retirement_age = int(data['full_retirement_age'])
     monthly_contribution = Decimal(str(data.get('monthly_contribution') or 0))
     annual_withdrawal = Decimal(str(data.get('annual_withdrawal') or 0))
     part_time_income = Decimal(str(data.get('part_time_income') or 0))
@@ -295,8 +295,8 @@ def calculate_active_retirement_phase(data: dict) -> ActiveRetirementResults:
     - Portfolio sustainability check
     """
     starting_portfolio = Decimal(str(data['starting_portfolio']))
-    start_age = data['active_retirement_start_age']
-    end_age = data['active_retirement_end_age']
+    start_age = int(data['active_retirement_start_age'])
+    end_age = int(data['active_retirement_end_age'])
     annual_expenses = Decimal(str(data['annual_expenses']))
     annual_healthcare = Decimal(str(data['annual_healthcare_costs']))
     social_security = Decimal(str(data.get('social_security_annual') or 0))
@@ -395,8 +395,8 @@ def calculate_late_retirement_phase(data: dict) -> LateRetirementResults:
     - Portfolio sufficiency check
     """
     starting_portfolio = Decimal(str(data['starting_portfolio']))
-    start_age = data['late_retirement_start_age']
-    life_expectancy = data['life_expectancy']
+    start_age = int(data['late_retirement_start_age'])
+    life_expectancy = int(data['life_expectancy'])
     annual_basic_expenses = Decimal(str(data['annual_basic_expenses']))
     annual_healthcare = Decimal(str(data['annual_healthcare_costs']))
     ltc_annual = Decimal(str(data.get('long_term_care_annual') or 0))
